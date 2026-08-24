@@ -6,6 +6,8 @@
   <title>MJ Representações — Sistema de Gestão</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 📚 Biblioteca de Leitura Automática (OCR) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
     :root {
@@ -42,7 +44,7 @@
     .chip { padding: 6px 14px; border-radius: 20px; font-size: 13px; border: 1px solid var(--mj-cinza); background: white; cursor: pointer; transition: 0.2s; }
     .chip:hover, .chip.active { border-color: var(--mj-dourado); background: var(--mj-dourado); color: white; }
     .upload-box { border: 2px dashed var(--mj-cinza); border-radius: 10px; padding: 25px; text-align: center; cursor: pointer; transition: 0.2s; }
-    .upload-box:hover, .upload-box.active { border-color: var(--mj-dourado); background: rgba(184,134,11,0.05); }
+    .upload-box:hover, .upload-box.leitura { border-color: var(--mj-dourado); background: rgba(184,134,11,0.05); }
     .preview-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; border: 2px solid var(--mj-dourado); margin-top: 12px; display: none; background: #f9f6ed; }
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; display: none; }
     .modal-conteudo { background: white; border-radius: 16px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
@@ -50,6 +52,9 @@
     .titulo-cidade { font-family: 'Playfair Display', serif; border-bottom: 2px solid var(--mj-dourado); }
     .logo-mj { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 22px; border: 2px solid white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
     .oculto { display: none !important; }
+    .barra-progresso { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin-top: 10px; }
+    .barra-progresso > div { height: 100%; background: linear-gradient(90deg, var(--mj-dourado), var(--mj-dourado-claro)); width: 0%; transition: width 0.3s; }
+    .campo-preenchido { background: #f0fdf4; border-color: #22c55e; }
     @media (max-width: 768px) {
       .sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 50; width: 220px; transform: translateX(-100%); transition: 0.3s; }
       .sidebar.aberto { transform: translateX(0); }
@@ -144,12 +149,16 @@
           <div class="card p-5">
             <h3 class="font-bold mb-4">📷 Nova Nota / Cliente</h3>
             
-            <!-- ÁREA DE FOTO DA NOTA -->
+            <!-- ÁREA DE FOTO DA NOTA COM LEITURA AUTOMÁTICA -->
             <label class="upload-box mb-4 block" for="fotoNota" id="areaUpload">
               <input type="file" id="fotoNota" accept="image/*" capture="environment" class="hidden">
               <div class="text-3xl mb-2">📄</div>
               <p class="font-semibold">Tirar foto da Nota Promissória</p>
-              <p class="text-sm text-gray-500 mt-1">A foto será salva junto com os dados</p>
+              <p class="text-sm text-gray-500 mt-1">🤖 Os dados serão preenchidos automaticamente</p>
+              <!-- Barra de progresso da leitura -->
+              <div id="barraLeitura" class="barra-progresso oculto">
+                <div id="progressoLeitura"></div>
+              </div>
               <!-- Prévia da foto -->
               <img id="previaFoto" class="preview-img" alt="Prévia da nota">
             </label>
@@ -294,14 +303,14 @@
 <script>
 const STORAGE_CLIENTES = 'mj_clientes';
 const STORAGE_MSGS = 'mj_mensagens';
-const VERSAO_SISTEMA = '1.2';
+const VERSAO_SISTEMA = '2.0-OCR';
 let clientes = [];
 let mensagens = [];
 let filtroAtual = 'todas';
 let clienteParaMsg = null;
 let clienteParaPago = null;
 let dadosParaImportar = null;
-let fotoBase64 = null; // Guarda a foto da nota
+let fotoBase64 = null;
 
 // Modelos de mensagens
 const MODELOS = {
@@ -318,11 +327,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('dataHoje').textContent = new Date().toLocaleDateString('pt-BR');
 });
 
-// 📸 FUNÇÃO DE FOTO DA NOTA — ARRUMADA E FUNCIONANDO!
+// 📸 + 🤖 FUNÇÃO DE FOTO COM LEITURA AUTOMÁTICA
 function configurarUploadFoto() {
   const inputFoto = document.getElementById('fotoNota');
   const previewImg = document.getElementById('previaFoto');
   const areaUpload = document.getElementById('areaUpload');
+  const barraLeitura = document.getElementById('barraLeitura');
+  const progressoLeitura = document.getElementById('progressoLeitura');
 
   inputFoto.addEventListener('change', function(e) {
     const arquivo = e.target.files[0];
@@ -331,23 +342,128 @@ function configurarUploadFoto() {
     // Mostra visualização da foto
     const leitor = new FileReader();
     leitor.onload = function(event) {
-      fotoBase64 = event.target.result; // Guarda a foto em formato de texto
+      fotoBase64 = event.target.result;
       previewImg.src = fotoBase64;
       previewImg.style.display = 'block';
-      areaUpload.classList.add('active');
+      areaUpload.classList.add('leitura');
       
-      // Tenta preencher os campos automaticamente (simulação de leitura)
-      preencherDadosDaFoto(arquivo.name);
+      // ⏳ Inicia leitura automática
+      barraLeitura.classList.remove('oculto');
+      progressoLeitura.style.width = '0%';
+      
+      lerNotaAutomaticamente(fotoBase64, progressoLeitura, barraLeitura);
     };
     leitor.readAsDataURL(arquivo);
   });
 }
 
-// 📝 Preenche os campos com base no nome do arquivo ou dados
-function preencherDadosDaFoto(nomeArquivo) {
-  // Essa função pode ser melhorada com OCR no futuro
-  // Por enquanto, deixa a foto salva e o usuário preenche os campos
-  console.log('Foto carregada:', nomeArquivo);
+// 🤖 LEITURA AUTOMÁTICA DA NOTA — OCR
+async function lerNotaAutomaticamente(imagemUrl, progressoEl, barraEl) {
+  try {
+    progressoEl.style.width = '10%';
+    
+    // Processa a imagem e lê o texto
+    const resultado = await Tesseract.recognize(
+      imagemUrl,
+      'por', // 🇧🇷 Leitura em português
+      {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            const pct = Math.round(m.progress * 80) + 10;
+            progressoEl.style.width = pct + '%';
+          }
+        }
+      }
+    );
+
+    progressoEl.style.width = '100%';
+    
+    const textoCompleto = resultado.data.text;
+    console.log('📝 Texto lido da nota:', textoCompleto);
+    
+    // 🧩 Extrai os dados do texto
+    extrairDadosDoTexto(textoCompleto);
+    
+    // Esconde a barra depois de um tempo
+    setTimeout(() => {
+      barraEl.classList.add('oculto');
+      progressoEl.style.width = '0%';
+    }, 1500);
+    
+    alert('✅ Nota lida! Confira os dados preenchidos. 📝');
+    
+  } catch (erro) {
+    console.error('Erro na leitura:', erro);
+    barraEl.classList.add('oculto');
+    alert('⚠️ Não foi possível ler a nota. Preencha os dados manualmente.');
+  }
+}
+
+// 🧩 EXTRAI OS DADOS E PREENCHE OS CAMPOS
+function extrairDadosDoTexto(texto) {
+  if (!texto) return;
+  
+  // Limpa o texto
+  const t = texto.replace(/\s+/g, ' ').trim();
+  
+  // 💰 Extrai VALOR (R$ 0.000,00 ou 0,00)
+  const regexValor = /R\$\s*([\d.,]+)|([\d]+\.[\d]{2,3},[\d]{2})|(\d+,\d{2})/i;
+  const matchValor = t.match(regexValor);
+  if (matchValor) {
+    const valorStr = matchValor[1] || matchValor[2] || matchValor[3];
+    if (valorStr) {
+      document.getElementById('fValor').value = valorStr.trim();
+      document.getElementById('fValor').classList.add('campo-preenchido');
+    }
+  }
+
+  // 📅 Extrai DATA (formato: dd/mm/aaaa ou dd-mm-aaaa)
+  const regexData = /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/;
+  const matchData = t.match(regexData);
+  if (matchData) {
+    const dia = matchData[1].padStart(2, '0');
+    const mes = matchData[2].padStart(2, '0');
+    const ano = matchData[3];
+    const dataIso = ${ano}-${mes}-${dia};
+    document.getElementById('fData').value = dataIso;
+    document.getElementById('fData').classList.add('campo-preenchido');
+  }
+
+  // 📄 Extrai NÚMERO DA NOTA
+  const regexNota = /(nota|promissória|nº|no\.?)\s*[:#]?\s*(\d+)/i;
+  const matchNota = t.match(regexNota);
+  if (matchNota) {
+    document.getElementById('fNota').value = matchNota[2];
+    document.getElementById('fNota').classList.add('campo-preenchido');
+  }
+
+  // 👤 Extrai NOME (procura após palavras como "cliente", "pagador", "devedor", "nome")
+  const palavrasChave = ['cliente', 'pagador', 'devedor', 'nome', 'senhor', 'sr\\.', 'sra\\.'];
+  for (const chave of palavrasChave) {
+    const regexNome = new RegExp(${chave}\\s*[:-]?\\s*([A-ZÀ-Ú][a-zà-ú]+(?:\\s+[A-ZÀ-Ú][a-zà-ú]+){1,4}), 'i');
+    const matchNome = t.match(regexNome);
+    if (matchNome) {
+      document.getElementById('fNome').value = matchNome[1].trim();
+      document.getElementById('fNome').classList.add('campo-preenchido');
+      break;
+    }
+  }
+
+  // 📱 Extrai TELEFONE
+  const regexTel = /\(?\d{2}\)?\s*\d{4,5}[-\s]?\d{4}/;
+  const matchTel = t.match(regexTel);
+  if (matchTel) {
+    document.getElementById('fTel').value = matchTel[0];
+    document.getElementById('fTel').classList.add('campo-preenchido');
+  }
+
+  // 📍 Extrai CIDADE
+  const regexCidade = /(cidade|local|município)\s*[:-]?\s*([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Ú][a-zà-ú]+)?)/i;
+  const matchCidade = t.match(regexCidade);
+  if (matchCidade) {
+    document.getElementById('fCidade').value = matchCidade[2].trim();
+    document.getElementById('fCidade').classList.add('campo-preenchido');
+  }
 }
 
 function carregarDados() {
@@ -623,11 +739,14 @@ function mostrarAba(nome) {
 }
 
 function novoCliente() {
-  ['fNome', 'fTel', 'fCidade', 'fValor', 'fData', 'fNota'].forEach(id => document.getElementById(id).value = '');
-  // Limpar a foto
+  ['fNome', 'fTel', 'fCidade', 'fValor', 'fData', 'fNota'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = '';
+    el.classList.remove('campo-preenchido');
+  });
   fotoBase64 = null;
   document.getElementById('previaFoto').style.display = 'none';
-  document.getElementById('areaUpload').classList.remove('active');
+  document.getElementById('areaUpload').classList.remove('leitura');
   document.getElementById('fotoNota').value = '';
 }
 
@@ -652,7 +771,7 @@ function salvarCliente() {
     valor,
     vencimento,
     nota,
-    fotoNota: fotoBase64, // Salva a foto junto com o cadastro
+    fotoNota: fotoBase64,
     status: 'pendente',
     dataCriacao: new Date().toISOString()
   };
@@ -660,7 +779,7 @@ function salvarCliente() {
   clientes.push(novo);
   salvarDados();
   novoCliente();
-  alert('✅ Cliente salvo com sucesso!' + (fotoBase64 ? '\n📷 Foto da nota salva!' : ''));
+  alert('✅ Cliente salvo com sucesso!' + (fotoBase64 ? '\n📷 Foto lida e salva automaticamente! 🤖' : ''));
 }
 
 function abrirModalMsg(id) {
@@ -679,81 +798,4 @@ function atualizarPrevia() {
   const tipo = document.getElementById('tipoMsg').value;
   let texto = MODELOS[tipo];
   texto = texto.replaceAll('{{nome}}', clienteParaMsg.nome)
-               .replaceAll('{{nota}}', clienteParaMsg.nota || '—')
-               .replaceAll('{{valor}}', R$ ${formatarDinheiro(clienteParaMsg.valor)})
-               .replaceAll('{{vencimento}}', formatarData(clienteParaMsg.vencimento));
-  document.getElementById('previaMsg').textContent = texto;
-}
-
-function enviarWhatsApp() {
-  if (!clienteParaMsg) return;
-  const tipo = document.getElementById('tipoMsg').value;
-  let texto = MODELOS[tipo];
-  texto = texto.replaceAll('{{nome}}', clienteParaMsg.nome)
-               .replaceAll('{{nota}}', clienteParaMsg.nota || '—')
-               .replaceAll('{{valor}}', R$ ${formatarDinheiro(clienteParaMsg.valor)})
-               .replaceAll('{{vencimento}}', formatarData(clienteParaMsg.vencimento));
-  
-  mensagens.unshift({
-    id: Date.now(),
-    nome: clienteParaMsg.nome,
-    telefone: clienteParaMsg.telefone,
-    tipo,
-    texto,
-    data: new Date().toISOString()
-  });
-  localStorage.setItem(STORAGE_MSGS, JSON.stringify(mensagens));
-  atualizarListaMensagens();
-
-  const tel = clienteParaMsg.telefone.replace(/\D/g, '');
-  window.open(https://wa.me/55${tel}?text=${encodeURIComponent(texto)}, '_blank');
-  
-  fecharModal();
-}
-
-function enviarPorTipo(tipo) {
-  let alvo = [];
-  if (tipo === 'proximos') alvo = clientes.filter(c => statusVencimento(c.vencimento) === 'proximo' && c.status !== 'pago');
-  else if (tipo === 'hoje') alvo = clientes.filter(c => statusVencimento(c.vencimento) === 'hoje' && c.status !== 'pago');
-  else if (tipo === 'vencidas') alvo = clientes.filter(c => statusVencimento(c.vencimento) === 'vencido' && c.status !== 'pago');
-  
-  if (alvo.length === 0) {
-    alert('Nenhum cliente encontrado para este tipo!');
-    return;
-  }
-  
-  if (confirm(Enviar mensagem para ${alvo.length} cliente(s)?)) {
-    alvo.forEach((c, i) => {
-      setTimeout(() => {
-        clienteParaMsg = c;
-        const tipoMsg = tipo === 'proximos' ? '7dias' : tipo === 'hoje' ? 'hoje' : 'vencido';
-        document.getElementById('tipoMsg').value = tipoMsg;
-        atualizarPrevia();
-        enviarWhatsApp();
-      }, i * 2000);
-    });
-  }
-}
-
-function abrirModalPago(id) {
-  clienteParaPago = id;
-  document.getElementById('modalPago').style.display = 'flex';
-}
-
-function fecharModalPago() {
-  document.getElementById('modalPago').style.display = 'none';
-  clienteParaPago = null;
-}
-
-function confirmarPago() {
-  const c = clientes.find(cli => cli.id === clienteParaPago);
-  if (c) {
-    c.status = 'pago';
-    salvarDados();
-  }
-  fecharModalPago();
-}
-
-</script>
-</body>
-</html>
+               .replaceAll('{{nota}}', clienteParaMsg.not
