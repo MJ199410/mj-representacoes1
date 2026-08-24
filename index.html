@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MJ Representações</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
 *{box-sizing:border-box}
@@ -106,6 +107,14 @@ label{font-weight:bold;font-size:14px}
 @media(max-width:480px){
  .cards{grid-template-columns:1fr}
 }
+
+.camera-box{border:2px dashed #0875ed;padding:18px;border-radius:10px;background:#f8fbff;margin:15px 0}
+.camera-actions{display:flex;gap:10px;flex-wrap:wrap}
+.camera-preview{max-width:100%;max-height:260px;border-radius:10px;margin-top:12px;display:none}
+.city-folders{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:15px}
+.city-folder{background:#f7f9fc;border:1px solid #e1e6ef;border-radius:10px;padding:15px;cursor:pointer}
+.city-folder:hover{background:#eef5ff}
+.ocr-status{font-size:13px;color:#657084;margin-top:10px}
 </style>
 </head>
 
@@ -236,6 +245,7 @@ label{font-weight:bold;font-size:14px}
 <button class="btn btn-green" onclick="novoCliente()">Salvar cliente</button>
 </div>
 
+<div class="box"><h2>Pastas por cidade</h2><div id="pastasCidades" class="city-folders"><div class="city-folder">Nenhuma cidade cadastrada.</div></div></div>
 <div class="box">
 <h2>Clientes</h2>
 <table>
@@ -266,12 +276,25 @@ label{font-weight:bold;font-size:14px}
 <div class="box">
 <h2>Notas / Documentos</h2>
 
-<label>Cliente</label>
-<input id="nCliente" placeholder="Cliente">
-
-<label>Descrição da nota</label>
-<textarea id="nDescricao" placeholder="Descrição"></textarea>
-
+<div class="camera-box">
+<h3>📷 Ler nota / promissória</h3>
+<p>Tire uma foto ou escolha uma imagem. O sistema tentará identificar os dados para você conferir.</p>
+<div class="camera-actions">
+<label class="btn btn-blue" style="display:inline-block;cursor:pointer">📷 Tirar foto
+<input id="fotoNota" type="file" accept="image/*" capture="environment" style="display:none" onchange="lerFotoNota(this)">
+</label>
+<label class="btn btn-green" style="display:inline-block;cursor:pointer">🖼️ Galeria
+<input type="file" accept="image/*" style="display:none" onchange="lerFotoNota(this)">
+</label>
+</div>
+<img id="previewNota" class="camera-preview" alt="Foto da nota">
+<div id="ocrStatus" class="ocr-status"></div>
+</div>
+<label>Cliente</label><input id="nCliente" placeholder="Cliente">
+<label>Telefone / WhatsApp</label><input id="nTelefone" placeholder="Telefone">
+<label>Valor</label><input id="nValor" type="number" step="0.01" placeholder="0,00">
+<label>Vencimento</label><input id="nVencimento" type="date">
+<label>Descrição da nota</label><textarea id="nDescricao" placeholder="Descrição"></textarea>
 <button class="btn btn-blue" onclick="novaNota()">Salvar nota</button>
 </div>
 
@@ -321,7 +344,8 @@ let db=JSON.parse(localStorage.getItem(STORAGE)||"null")||{
  vendas:[],
  pagamentos:[],
  notas:[],
- produtos:[]
+ produtos:[],
+ cidades:[]
 };
 
 function salvar(){
@@ -404,21 +428,46 @@ function novaVenda(){
 
 function novaNota(){
  const cliente=document.getElementById("nCliente").value.trim();
-
- if(!cliente)return alert("Informe o cliente.");
-
- db.notas.push({
+ if(!cliente)return alert("Confira o nome do cliente.");
+ const nota={
   cliente,
+  telefone:document.getElementById("nTelefone").value,
+  valor:Number(document.getElementById("nValor").value||0),
+  vencimento:document.getElementById("nVencimento").value,
   descricao:document.getElementById("nDescricao").value,
+  foto:document.getElementById("previewNota").dataset.image||"",
   data:new Date().toLocaleDateString("pt-BR")
- });
-
- document.getElementById("nCliente").value="";
- document.getElementById("nDescricao").value="";
-
- salvar();
- alert("Nota salva!");
+ };
+ db.notas.push(nota);
+ if(!db.clientes.find(c=>c.nome.toLowerCase()===cliente.toLowerCase())){
+  db.clientes.push({nome:cliente,telefone:nota.telefone,cidade:"",obs:"Cliente cadastrado pela leitura da nota"});
+ }
+ ["nCliente","nTelefone","nValor","nVencimento","nDescricao"].forEach(id=>document.getElementById(id).value="");
+ const p=document.getElementById("previewNota"); p.style.display="none"; p.removeAttribute("data-image");
+ document.getElementById("ocrStatus").textContent="";
+ salvar(); alert("Nota salva com sucesso!");
 }
+
+async function lerFotoNota(input){
+ const file=input.files&&input.files[0]; if(!file)return;
+ const preview=document.getElementById("previewNota"), status=document.getElementById("ocrStatus");
+ const reader=new FileReader();
+ reader.onload=async e=>{
+  preview.src=e.target.result; preview.dataset.image=e.target.result; preview.style.display="block";
+  status.textContent="Lendo a nota... aguarde.";
+  try{
+   const result=await Tesseract.recognize(e.target.result,"por+eng");
+   const texto=(result.data.text||"").replace(/\s+/g," ").trim();
+   const vm=texto.match(/(?:R\$?\s*)(\d{1,3}(?:[.\s]\d{3})*(?:,\d{2})|\d+(?:[.,]\d{2}))/i);
+   if(vm){const v=vm[1].replace(/\./g,"").replace(",","."); if(!isNaN(Number(v)))document.getElementById("nValor").value=Number(v).toFixed(2);}
+   const dm=texto.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\b/);
+   if(dm){let y=dm[3];if(y.length===2)y="20"+y;document.getElementById("nVencimento").value=${y}-${dm[2].padStart(2,"0")}-${dm[1].padStart(2,"0")};}
+   status.textContent=texto?"Leitura concluída. Confira os campos antes de salvar.":"Não consegui ler o texto. Preencha manualmente.";
+  }catch(e){status.textContent="Não foi possível fazer a leitura automática. A foto continua disponível para salvar.";}
+ };
+ reader.readAsDataURL(file);
+}
+
 
 function novoProduto(){
  const nome=document.getElementById("pNome").value.trim();
@@ -450,7 +499,13 @@ function atualizar(){
  document.getElementById("rVendas").textContent=dinheiro(vendas);
  document.getElementById("rRecebido").textContent=dinheiro(recebidos);
 
- document.getElementById("listaClientes").innerHTML=
+ const cidades={};
+ db.clientes.forEach(c=>{const cidade=(c.cidade||"Sem cidade").trim()||"Sem cidade";cidades[cidade]=(cidades[cidade]||0)+1;});
+ const pastaEl=document.getElementById("pastasCidades");
+ const nomesCidades=Object.keys(cidades);
+ pastaEl.innerHTML=nomesCidades.length?nomesCidades.map(c=><div class="city-folder" onclick="filtrarCidade('${encodeURIComponent(c)}')">📁 <b>${c}</b><br><small>${cidades[c]} cliente(s)</small></div>).join(""):'<div class="city-folder">Nenhuma cidade cadastrada.</div>';
+
+document.getElementById("listaClientes").innerHTML=
  db.clientes.length?
  db.clientes.map(c=><tr><td>${c.nome}</td><td>${c.telefone||"-"}</td><td>${c.cidade||"-"}</td></tr>).join("")
  :"";
@@ -497,6 +552,8 @@ function cobrar(cliente,valor){
 
  alert("Mensagem pronta para cobrança:\n\n"+texto);
 }
+
+function filtrarCidade(cidade){const alvo=decodeURIComponent(cidade).toLowerCase();document.querySelectorAll('#listaClientes tr').forEach(tr=>tr.style.display=tr.innerText.toLowerCase().includes(alvo)?'':'none');show('clientes');}
 
 function buscar(q){
  q=q.toLowerCase();
