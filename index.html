@@ -6,7 +6,6 @@
   <title>MJ Representações — Sistema de Gestão</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
     :root {
@@ -43,7 +42,8 @@
     .chip { padding: 6px 14px; border-radius: 20px; font-size: 13px; border: 1px solid var(--mj-cinza); background: white; cursor: pointer; transition: 0.2s; }
     .chip:hover, .chip.active { border-color: var(--mj-dourado); background: var(--mj-dourado); color: white; }
     .upload-box { border: 2px dashed var(--mj-cinza); border-radius: 10px; padding: 25px; text-align: center; cursor: pointer; transition: 0.2s; }
-    .upload-box:hover { border-color: var(--mj-dourado); background: rgba(184,134,11,0.05); }
+    .upload-box:hover, .upload-box.active { border-color: var(--mj-dourado); background: rgba(184,134,11,0.05); }
+    .preview-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; border: 2px solid var(--mj-dourado); margin-top: 12px; display: none; background: #f9f6ed; }
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; display: none; }
     .modal-conteudo { background: white; border-radius: 16px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
     .scroll { max-height: 500px; overflow-y: auto; }
@@ -80,6 +80,15 @@
       <a class="sidebar-item flex items-center gap-3 px-3 py-3 rounded-lg mb-2" onclick="mostrarAba('mensagens')">
         <span>💬</span> Mensagens
       </a>
+      <div class="pt-4 mt-4 border-t border-white/15">
+        <a class="sidebar-item flex items-center gap-3 px-3 py-3 rounded-lg mb-2" onclick="exportarDados()">
+          <span>📤</span> Exportar Dados
+        </a>
+        <a class="sidebar-item flex items-center gap-3 px-3 py-3 rounded-lg mb-2" onclick="document.getElementById('importarArquivo').click()">
+          <span>📥</span> Importar Dados
+        </a>
+        <input type="file" id="importarArquivo" accept=".json" class="hidden" onchange="importarDados(event)">
+      </div>
     </nav>
   </aside>
 
@@ -134,15 +143,17 @@
           <!-- FORMULÁRIO -->
           <div class="card p-5">
             <h3 class="font-bold mb-4">📷 Nova Nota / Cliente</h3>
-            <label class="upload-box mb-4 block" for="fotoNota">
+            
+            <!-- ÁREA DE FOTO DA NOTA -->
+            <label class="upload-box mb-4 block" for="fotoNota" id="areaUpload">
               <input type="file" id="fotoNota" accept="image/*" capture="environment" class="hidden">
               <div class="text-3xl mb-2">📄</div>
               <p class="font-semibold">Tirar foto da Nota Promissória</p>
-              <p class="text-sm text-gray-500 mt-1">Preenche os dados automaticamente</p>
+              <p class="text-sm text-gray-500 mt-1">A foto será salva junto com os dados</p>
+              <!-- Prévia da foto -->
+              <img id="previaFoto" class="preview-img" alt="Prévia da nota">
             </label>
-            <div id="statusOcr" class="hidden mb-4 p-3 bg-yellow-50 rounded-lg text-sm">
-              <p>📄 Lendo a nota...</p>
-            </div>
+
             <div class="space-y-3">
               <div>
                 <label class="text-sm font-medium">Nome *</label>
@@ -268,14 +279,29 @@
     </div>
   </div>
 
+  <!-- MODAL IMPORTAR -->
+  <div id="modalImportar" class="modal">
+    <div class="modal-conteudo text-center">
+      <h3 class="text-xl font-bold mb-3">⚠️ Importar Dados?</h3>
+      <p class="mb-5 text-gray-600">Isso <strong>substituirá TODOS</strong> os dados atuais! Certifique-se de ter feito backup.</p>
+      <div class="flex gap-3 justify-center">
+        <button onclick="fecharModalImportar()" class="btn px-4 py-2 border border-gray-300 bg-white">Cancelar</button>
+        <button onclick="confirmarImportar()" class="btn btn-dourado px-4 py-2">✅ Confirmar Importação</button>
+      </div>
+    </div>
+  </div>
+
 <script>
 const STORAGE_CLIENTES = 'mj_clientes';
 const STORAGE_MSGS = 'mj_mensagens';
+const VERSAO_SISTEMA = '1.2';
 let clientes = [];
 let mensagens = [];
 let filtroAtual = 'todas';
 let clienteParaMsg = null;
 let clienteParaPago = null;
+let dadosParaImportar = null;
+let fotoBase64 = null; // Guarda a foto da nota
 
 // Modelos de mensagens
 const MODELOS = {
@@ -288,9 +314,41 @@ const MODELOS = {
 
 document.addEventListener('DOMContentLoaded', () => {
   carregarDados();
+  configurarUploadFoto();
   document.getElementById('dataHoje').textContent = new Date().toLocaleDateString('pt-BR');
-  configurarOcr();
 });
+
+// 📸 FUNÇÃO DE FOTO DA NOTA — ARRUMADA E FUNCIONANDO!
+function configurarUploadFoto() {
+  const inputFoto = document.getElementById('fotoNota');
+  const previewImg = document.getElementById('previaFoto');
+  const areaUpload = document.getElementById('areaUpload');
+
+  inputFoto.addEventListener('change', function(e) {
+    const arquivo = e.target.files[0];
+    if (!arquivo) return;
+
+    // Mostra visualização da foto
+    const leitor = new FileReader();
+    leitor.onload = function(event) {
+      fotoBase64 = event.target.result; // Guarda a foto em formato de texto
+      previewImg.src = fotoBase64;
+      previewImg.style.display = 'block';
+      areaUpload.classList.add('active');
+      
+      // Tenta preencher os campos automaticamente (simulação de leitura)
+      preencherDadosDaFoto(arquivo.name);
+    };
+    leitor.readAsDataURL(arquivo);
+  });
+}
+
+// 📝 Preenche os campos com base no nome do arquivo ou dados
+function preencherDadosDaFoto(nomeArquivo) {
+  // Essa função pode ser melhorada com OCR no futuro
+  // Por enquanto, deixa a foto salva e o usuário preenche os campos
+  console.log('Foto carregada:', nomeArquivo);
+}
 
 function carregarDados() {
   const c = localStorage.getItem(STORAGE_CLIENTES);
@@ -304,6 +362,62 @@ function salvarDados() {
   localStorage.setItem(STORAGE_CLIENTES, JSON.stringify(clientes));
   localStorage.setItem(STORAGE_MSGS, JSON.stringify(mensagens));
   atualizarTela();
+}
+
+// 📤 EXPORTAR DADOS
+function exportarDados() {
+  const dados = {
+    versao: VERSAO_SISTEMA,
+    dataExportacao: new Date().toISOString(),
+    clientes: clientes,
+    mensagens: mensagens
+  };
+  const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = MJ-Representacoes-Dados-${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.json;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('✅ Dados exportados com sucesso!\n\nArquivo baixado. Guarde com segurança! 📂');
+}
+
+// 📥 IMPORTAR DADOS
+function importarDados(event) {
+  const arquivo = event.target.files[0];
+  if (!arquivo) return;
+  
+  const leitor = new FileReader();
+  leitor.onload = (e) => {
+    try {
+      dadosParaImportar = JSON.parse(e.target.result);
+      if (!dadosParaImportar.clientes) throw new Error('Formato inválido');
+      document.getElementById('modalImportar').style.display = 'flex';
+    } catch (erro) {
+      alert('❌ Arquivo inválido! Selecione um arquivo .json de exportação.');
+    }
+  };
+  leitor.readAsText(arquivo);
+  event.target.value = '';
+}
+
+function fecharModalImportar() {
+  document.getElementById('modalImportar').style.display = 'none';
+  dadosParaImportar = null;
+}
+
+function confirmarImportar() {
+  if (!dadosParaImportar) return;
+  
+  clientes = dadosParaImportar.clientes || [];
+  mensagens = dadosParaImportar.mensagens || [];
+  salvarDados();
+  
+  fecharModalImportar();
+  alert('✅ Dados importados com sucesso!\n\nTodos os dados foram carregados. 🎉');
+  dadosParaImportar = null;
 }
 
 function formatarDinheiro(v) {
@@ -331,7 +445,6 @@ function statusVencimento(d) {
 }
 
 function atualizarTela() {
-  // Totais
   const aberto = clientes.filter(c => c.status !== 'pago').reduce((s,c) => s + Number(c.valor), 0);
   const pago = clientes.filter(c => c.status === 'pago').reduce((s,c) => s + Number(c.valor), 0);
   const vencidos = clientes.filter(c => statusVencimento(c.vencimento) === 'vencido' && c.status !== 'pago').length;
@@ -342,21 +455,13 @@ function atualizarTela() {
   document.getElementById('tPago').textContent = R$ ${formatarDinheiro(pago)};
   document.getElementById('tVencido').textContent = vencidos;
 
-  // Contagem cobranças
   document.getElementById('cProx').textContent = proximos;
   document.getElementById('cHoje').textContent = clientes.filter(c => statusVencimento(c.vencimento) === 'hoje' && c.status !== 'pago').length;
   document.getElementById('cVenc').textContent = vencidos;
 
-  // Atualizar filtro de cidades
   atualizarListaCidades();
-
-  // Alertas
   atualizarAlertas();
-
-  // Conteúdo por cidade
   atualizarConteudoCidades();
-
-  // Listas
   atualizarListaCobrancas();
   atualizarListaTodosClientes();
   atualizarListaMensagens();
@@ -417,7 +522,7 @@ function atualizarConteudoCidades() {
     return `
       <div class="card p-5 cidade-bloco">
         <h4 class="titulo-cidade text-xl font-bold pb-2 mb-3">📍 ${cidade}</h4>
-        <div class="flex gap-4 mb-4 text-sm">
+        <div class="flex gap-4 mb-4 text-sm flex-wrap">
           <span><strong>Clientes:</strong> ${cliCidade.length}</span>
           <span style="color:var(--mj-dourado)"><strong>Em Aberto:</strong> R$ ${formatarDinheiro(totalAberto)}</span>
           <span style="color:var(--mj-verde)"><strong>Pago:</strong> R$ ${formatarDinheiro(totalPago)}</span>
@@ -427,10 +532,11 @@ function atualizarConteudoCidades() {
             const st = statusVencimento(c.vencimento);
             const classe = c.status === 'pago' ? 'status-pago' : st === 'vencido' ? 'status-vencido' : 'status-pendente';
             const label = c.status === 'pago' ? '✅ Pago' : st === 'vencido' ? '⚠️ Vencido' : st === 'hoje' ? '📅 Hoje' : ⏰ ${diasParaVencer(c.vencimento)} dias;
+            const temFoto = c.fotoNota ? '📷' : '';
             return `
               <div class="p-3 rounded-lg border ${classe} flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                 <div>
-                  <p class="font-semibold">${c.nome}</p>
+                  <p class="font-semibold">${c.nome} ${temFoto}</p>
                   <p class="text-sm">Nota: ${c.nota || '—'} • Venc: ${formatarData(c.vencimento)} • R$ ${formatarDinheiro(c.valor)}</p>
                 </div>
                 <div class="flex gap-2 flex-shrink-0">
@@ -478,10 +584,11 @@ function atualizarListaTodosClientes() {
     ? '<p class="text-gray-500 text-center py-4">Nenhum cliente cadastrado.</p>'
     : clientes.map(c => {
       const st = c.status === 'pago' ? 'Pago' : statusVencimento(c.vencimento) === 'vencido' ? 'Vencido' : 'Pendente';
+      const temFoto = c.fotoNota ? '📷' : '';
       return `
         <div class="p-3 border rounded-lg flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <div>
-            <p class="font-semibold">${c.nome} — ${c.cidade}</p>
+            <p class="font-semibold">${c.nome} — ${c.cidade} ${temFoto}</p>
             <p class="text-sm">Tel: ${c.telefone} • Nota: ${c.nota || '—'} • R$ ${formatarDinheiro(c.valor)} • Venc: ${formatarData(c.vencimento)}</p>
           </div>
           <span class="text-xs px-3 py-1 rounded-full ${c.status === 'pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${st}</span>
@@ -505,7 +612,6 @@ function atualizarListaMensagens() {
     `).join('');
 }
 
-// Navegação
 function mostrarAba(nome) {
   ['dashboard', 'cobrancas', 'clientes', 'mensagens'].forEach(aba => {
     document.getElementById(aba-${aba}).classList.add('oculto');
@@ -516,9 +622,13 @@ function mostrarAba(nome) {
   event.target.closest('.sidebar-item')?.classList.add('active');
 }
 
-// Salvar cliente
 function novoCliente() {
   ['fNome', 'fTel', 'fCidade', 'fValor', 'fData', 'fNota'].forEach(id => document.getElementById(id).value = '');
+  // Limpar a foto
+  fotoBase64 = null;
+  document.getElementById('previaFoto').style.display = 'none';
+  document.getElementById('areaUpload').classList.remove('active');
+  document.getElementById('fotoNota').value = '';
 }
 
 function salvarCliente() {
@@ -542,6 +652,7 @@ function salvarCliente() {
     valor,
     vencimento,
     nota,
+    fotoNota: fotoBase64, // Salva a foto junto com o cadastro
     status: 'pendente',
     dataCriacao: new Date().toISOString()
   };
@@ -549,10 +660,9 @@ function salvarCliente() {
   clientes.push(novo);
   salvarDados();
   novoCliente();
-  alert('✅ Cliente salvo com sucesso!');
+  alert('✅ Cliente salvo com sucesso!' + (fotoBase64 ? '\n📷 Foto da nota salva!' : ''));
 }
 
-// Mensagens
 function abrirModalMsg(id) {
   clienteParaMsg = clientes.find(c => c.id === id);
   document.getElementById('modalMsg').style.display = 'flex';
@@ -584,7 +694,6 @@ function enviarWhatsApp() {
                .replaceAll('{{valor}}', R$ ${formatarDinheiro(clienteParaMsg.valor)})
                .replaceAll('{{vencimento}}', formatarData(clienteParaMsg.vencimento));
   
-  // Salvar no histórico
   mensagens.unshift({
     id: Date.now(),
     nome: clienteParaMsg.nome,
@@ -596,7 +705,6 @@ function enviarWhatsApp() {
   localStorage.setItem(STORAGE_MSGS, JSON.stringify(mensagens));
   atualizarListaMensagens();
 
-  // Abrir WhatsApp
   const tel = clienteParaMsg.telefone.replace(/\D/g, '');
   window.open(https://wa.me/55${tel}?text=${encodeURIComponent(texto)}, '_blank');
   
@@ -622,12 +730,11 @@ function enviarPorTipo(tipo) {
         document.getElementById('tipoMsg').value = tipoMsg;
         atualizarPrevia();
         enviarWhatsApp();
-      }, i * 2000); // 2s entre cada mensagem
+      }, i * 2000);
     });
   }
 }
 
-// Marcar como pago
 function abrirModalPago(id) {
   clienteParaPago = id;
   document.getElementById('modalPago').style.display = 'flex';
@@ -645,27 +752,6 @@ function confirmarPago() {
     salvarDados();
   }
   fecharModalPago();
-}
-
-// OCR - Foto da nota
-function configurarOcr() {
-  const input = document.getElementById('fotoNota');
-  input.addEventListener('change', async (e) => {
-    const arq = e.target.files[0];
-    if (!arq) return;
-    document.getElementById('statusOcr').classList.remove('hidden');
-    document.getElementById('statusOcr').innerHTML = '<p>📄 Lendo a nota, aguarde...</p>';
-    
-    // Simulação - para usar OCR real precisa de servidor, mas preencha manualmente
-    const leitor = new FileReader();
-    leitor.onload = () => {
-      // Aqui poderia integrar OCR real
-      setTimeout(() => {
-        document.getElementById('statusOcr').innerHTML = '<p>✅ Nota carregada! Preencha os dados abaixo.</p>';
-      }, 1500);
-    };
-    leitor.readAsDataURL(arq);
-  });
 }
 
 </script>
