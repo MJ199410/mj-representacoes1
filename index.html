@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MJ Representações — Sistema</title>
+
+<style>
+:root{
+  --navy:#071a3a;
+  --navy2:#0e2d5c;
+  --blue:#0b55d6;
+  --gold:#d4a13a;
+  --green:#159447;
+  --red:#dc2626;
+  --orange:#ea8b00;
+  --bg:#f4f6f9;
+  --card:#fff;
+  --line:#dfe4ea;
+  --text:#172033;
+  --muted:#697386;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+button,input,select,textarea{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.sidebar{
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  width:245px;
+  background:linear-gradient(180deg,#06152f,#0b2d61);
+  color:white;
+  padding:22px 14px;
+  z-index:10;
+}
+
+.logo{
+  text-align:center;
+  font-size:26px;
+  font-weight:900;
+  margin-bottom:5px;
+}
+
+.logo span{
+  color:var(--gold);
+}
+
+.subtitle{
+  text-align:center;
+  font-size:11px;
+  letter-spacing:3px;
+  color:#d8dfed;
+  margin-bottom:30px;
+}
+
+.menu button{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:#dce5f5;
+  padding:14px 12px;
+  text-align:left;
+  border-radius:9px;
+  margin-bottom:5px;
+}
+
+.menu button:hover,
+.menu button.active{
+  background:#1558d6;
+  color:#fff;
+}
+
+.menu button span{
+  display:inline-block;
+  width:28px;
+}
+
+.side-footer{
+  position:absolute;
+  bottom:20px;
+  left:20px;
+  color:#aebbd1;
+  font-size:12px;
+}
+
+.main{
+  margin-left:245px;
+  min-height:100vh;
+}
+
+.topbar{
+  background:white;
+  border-bottom:1px solid var(--line);
+  padding:16px 25px;
+  position:sticky;
+  top:0;
+  z-index:5;
+}
+
+.search{
+  width:380px;
+  max-width:100%;
+  border:1px solid #ccd4df;
+  border-radius:10px;
+  padding:12px 15px;
+  outline:none;
+}
+
+.page{
+  padding:25px;
+  max-width:1500px;
+  margin:auto;
+}
+
+.screen{
+  display:none;
+}
+
+.screen.active{
+  display:block;
+}
+
+h1{
+  margin:0 0 5px;
+}
+
+.description{
+  color:var(--muted);
+  margin-bottom:22px;
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:15px;
+  margin-bottom:22px;
+}
+
+.card{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:20px;
+  box-shadow:0 2px 7px #00000008;
+}
+
+.card .label{
+  color:var(--muted);
+  font-size:14px;
+}
+
+.card .value{
+  font-size:25px;
+  font-weight:800;
+  margin-top:8px;
+}
+
+.blue{color:var(--blue)}
+.green{color:var(--green)}
+.red{color:var(--red)}
+.orange{color:var(--orange)}
+
+.grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+
+.section{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:20px;
+  margin-bottom:20px;
+}
+
+.section h2{
+  margin-top:0;
+  font-size:19px;
+}
+
+.table-wrap{
+  overflow:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th,td{
+  padding:12px 10px;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+  white-space:nowrap;
+}
+
+th{
+  background:#f7f9fc;
+  font-size:13px;
+}
+
+.badge{
+  padding:5px 9px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.badge.green{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.badge.red{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.badge.orange{
+  background:#ffedd5;
+  color:#9a3412;
+}
+
+.btn{
+  border:0;
+  border-radius:8px;
+  padding:10px 14px;
+  color:white;
+  background:var(--blue);
+  font-weight:bold;
+}
+
+.btn.green{
+  background:var(--green);
+}
+
+.btn.red{
+  background:var(--red);
+}
+
+.btn.gold{
+  background:var(--gold);
+}
+
+.btn.gray{
+  background:#64748b;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+
+.field label{
+  display:block;
+  font-size:13px;
+  font-weight:bold;
+  margin-bottom:5px;
+}
+
+.field input,
+.field select,
+.field textarea{
+  width:100%;
+  border:1px solid #ccd4df;
+  border-radius:8px;
+  padding:11px;
+}
+
+.field textarea{
+  min-height:100px;
+  resize:vertical;
+}
+
+.full{
+  grid-column:1/-1;
+}
+
+.empty{
+  text-align:center;
+  color:var(--muted);
+  padding:25px;
+}
+
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:#0008;
+  z-index:100;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.modal.show{
+  display:flex;
+}
+
+.modal-box{
+  background:white;
+  width:700px;
+  max-width:100%;
+  max-height:90vh;
+  overflow:auto;
+  border-radius:14px;
+  padding:25px;
+}
+
+.modal-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.close{
+  border:0;
+  background:#eee;
+  border-radius:50%;
+  width:35px;
+  height:35px;
+}
+
+.quick{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+
+.quick button{
+  border:0;
+  border-radius:10px;
+  padding:15px;
+  color:white;
+  font-weight:bold;
+}
+
+.photo-preview{
+  max-width:100%;
+  max-height:250px;
+  display:block;
+  margin-top:10px;
+  border-radius:8px;
+}
+
+@media(max-width:900px){
+  .sidebar{
+    width:70px;
+    padding:15px 8px;
+  }
+
+  .logo,.subtitle,.side-footer{
+    display:none;
+  }
+
+  .menu button{
+    text-align:center;
+    padding:14px 5px;
+  }
+
+  .menu button span{
+    width:auto;
+  }
+
+  .main{
+    margin-left:70px;
+  }
+
+  .cards{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .grid2{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:600px){
+  .cards{
+    grid-template-columns:1fr;
+  }
+
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+  .quick{
+    grid-template-columns:1fr;
+  }
+
+  .page{
+    padding:15px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+  <div class="logo">M<span>J</span></div>
+  <div class="subtitle">REPRESENTAÇÕES</div>
+
+  <div class="menu">
+    <button class="active" onclick="showScreen('dashboard',this)">
+      <span>▣</span> Dashboard
+    </button>
+
+    <button onclick="showScreen('vendas',this)">
+      <span>🛒</span> Vendas
+    </button>
+
+    <button onclick="showScreen('clientes',this)">
+      <span>👥</span> Clientes
+    </button>
+
+    <button onclick="showScreen('cobrancas',this)">
+      <span>💰</span> Cobranças
+    </button>
+
+    <button onclick="showScreen('pagamentos',this)">
+      <span>✓</span> Pagamentos recebidos
+    </button>
+
+    <button onclick="showScreen('notas',this)">
+      <span>▣</span> Notas / Documentos
+    </button>
+
+    <button onclick="showScreen('produtos',this)">
+      <span>▤</span> Produtos
+    </button>
+
+    <button onclick="showScreen('relatorios',this)">
+      <span>▥</span> Relatórios
+    </button>
+  </div>
+
+  <div class="side-footer">
+    MJ REPRESENTAÇÕES<br>
+    Sistema Web 1.0
+  </div>
+</aside>
+
+<main class="main">
+
+  <div class="topbar">
+    <input
+      class="search"
+      id="globalSearch"
+      placeholder="Buscar cliente, venda, nota..."
+      oninput="globalSearch(this.value)"
+    >
+  </div>
+
+  <div class="page">
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="screen active">
+      <h1>Dashboard</h1>
+      <div class="description">Visão geral das vendas e cobranças</div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="label">Vendas no período</div>
+          <div class="value blue" id="dashSales">R$ 0,00</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Recebidos</div>
+          <div class="value green" id="dashReceived">R$ 0,00</div>
+        </div>
+
+        <div class="card">
+          <div class="label">A receber</div>
+          <div class="value orange" id="dashToReceive">R$ 0,00</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Atrasados</div>
+          <div class="value red" id="dashLate">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+
+        <div class="section">
+          <h2>Vendas por cidade</h2>
+          <div id="citySales"></div>
+        </div>
+
+        <div class="section">
+          <h2>Cobranças prioritárias</h2>
+          <div id="priorityCharges"></div>
+        </div>
+
+      </div>
+
+      <div class="section">
+        <h2>Ações rápidas</h2>
+
+        <div class="quick">
+          <button style="background:#0b55d6" onclick="openSale()">
+            + Nova venda
+          </button>
+
+          <button style="background:#159447" onclick="openClient()">
+            + Novo cliente
+          </button>
+
+          <button style="background:#d4a13a" onclick="showScreen('cobrancas')">
+            Ver cobranças
+          </button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Vendas recentes</h2>
+        <div id="recentSales"></div>
+      </div>
+    </section>
+
+
+    <!-- VENDAS -->
+    <section id="vendas" class="screen">
+      <h1>Vendas</h1>
+      <div class="description">Controle de vendas realizadas</div>
+
+      <div class="actions">
+        <button class="btn" onclick="openSale()">+ Nova venda</button>
+      </div>
+
+      <div class="section">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Cliente</th>
+                <th>Cidade</th>
+                <th>Valor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="salesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- CLIENTES -->
+    <section id="clientes" class="screen">
+      <h1>Clientes</h1>
+      <div class="description">Cadastro dos seus clientes</div>
+
+      <div class="actions">
+        <button class="btn green" onclick="openClient()">+ Novo cliente</button>
+      </div>
+
+      <div class="section">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Cidade</th>
+                <th>Telefone</th>
+                <th>Observações</th>
+              </tr>
+            </thead>
+            <tbody id="clientsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- COBRANÇAS -->
+    <section id="cobrancas" class="screen">
+      <h1>Cobranças</h1>
+      <div class="description">Acompanhe valores a receber e notas atrasadas</div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="label">Total a receber</div>
+          <div class="value orange" id="chargeTotal">R$ 0,00</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Total atrasado</div>
+          <div class="value red" id="chargeLate">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Notas atrasadas</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Vencimento</th>
+                <th>Valor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="chargesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- PAGAMENTOS -->
+    <section id="pagamentos" class="screen">
+      <h1>Pagamentos recebidos</h1>
+      <div class="description">Histórico dos pagamentos recebidos</div>
+
+      <div class="section">
+        <div class="actions">
+          <button class="btn green" onclick="openPayment()">
+            + Registrar pagamento
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Cliente</th>
+                <th>Valor</th>
+                <th>Forma</th>
+              </tr>
+            </thead>
+            <tbody id="paymentsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- NOTAS -->
+    <section id="notas" class="screen">
+      <h1>Notas / Documentos</h1>
+      <div class="description">
+        Cadastre notas, promissórias e documentos dos clientes
+      </div>
+
+      <div class="actions">
+        <button class="btn gold" onclick="openNote()">
+          + Nova nota / promissória
+        </button>
+      </div>
+
+      <div class="section">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Documento</th>
+                <th>Vencimento</th>
+                <th>Valor</th>
+                <th>Foto</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="notesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- PRODUTOS -->
+    <section id="produtos" class="screen">
+      <h1>Produtos</h1>
+      <div class="description">Cadastro dos produtos representados</div>
+
+      <div class="actions">
+        <button class="btn" onclick="openProduct()">+ Novo produto</button>
+      </div>
+
+      <div class="section">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+              </tr>
+            </thead>
+            <tbody id="productsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- RELATÓRIOS -->
+    <section id="relatorios" class="screen">
+      <h1>Relatórios</h1>
+      <div class="description">Resumo financeiro do sistema</div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="label">Vendas</div>
+          <div class="value blue" id="reportSales">R$ 0,00</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Recebido</div>
+          <div class="value green" id="reportReceived">R$ 0,00</div>
+        </div>
+
+        <div class="card">
+          <div class="label">A receber</div>
+          <div class="value orange" id="reportReceive">R$ 0,00</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Atrasado</div>
+          <div class="value red" id="reportLate">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Resumo</h2>
+        <div id="reportSummary"></div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="modalTitle">Novo cadastro</h2>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+
+<script>
+const KEY = "mj_representacoes1";
+
+let db = JSON.parse(localStorage.getItem(KEY)) || {
+  clients: [],
+  sales: [],
+  payments: [],
+  notes: [],
+  products: []
+};
+
+function save(){
+  localStorage.setItem(KEY, JSON.stringify(db));
+  render();
+}
+
+function money(v){
+  return Number(v || 0).toLocaleString("pt-BR",{
+    style:"currency",
+    currency:"BRL"
+  });
+}
+
+function today(){
+  return new Date().toISOString().slice(0,10);
+}
+
+function showScreen(id,btn){
+  document.querySelectorAll(".screen").forEach(x=>{
+    x.classList.remove("active");
+  });
+
+  document.getElementById(id).classList.add("active");
+
+  document.querySelectorAll(".menu button").forEach(x=>{
+    x.classList.remove("active");
+  });
+
+  if(btn) btn.classList.add("active");
+
+  render();
+}
+
+function openModal(title,html){
+  document.getElementById("modalTitle").textContent=title;
+  document.getElementById("modalContent").innerHTML=html;
+  document.getElementById("modal").classList.add("show");
+}
+
+function closeModal(){
+  document.getElementById("modal").classList.remove("show");
+}
+
+function openClient(){
+  openModal("Novo cliente",`
+    <div class="form-grid">
+
+      <div class="field full">
+        <label>Nome do cliente</label>
+        <input id="cName" placeholder="Nome completo">
+      </div>
+
+      <div class="field">
+        <label>Cidade</label>
+        <input id="cCity" placeholder="Cidade">
+      </div>
+
+      <div class="field">
+        <label>Telefone</label>
+        <input id="cPhone" placeholder="Telefone">
+      </div>
+
+      <div class="field full">
+        <label>Observações</label>
+        <textarea id="cObs"></textarea>
+      </div>
+
+      <div class="full">
+        <button class="btn green" onclick="saveClient()">
+          Salvar cliente
+        </button>
+      </div>
+
+    </div>
+  `);
+}
+
+function saveClient(){
+  const name=document.getElementById("cName").value.trim();
+
+  if(!name){
+    alert("Informe o nome do cliente.");
+    return;
+  }
+
+  db.clients.push({
+    id:Date.now(),
+    name,
+    city:document.getElementById("cCity").value,
+    phone:document.getElementById("cPhone").value,
+    obs:document.getElementById("cObs").value
+  });
+
+  closeModal();
+  save();
+}
+
+function openSale(){
+
+  if(!db.clients.length){
+    alert("Cadastre um cliente primeiro.");
+    showScreen("clientes");
+    return;
+  }
+
+  const options=db.clients.map(c=>
+    <option value="${c.id}">${c.name}</option>
+  ).join("");
+
+  openModal("Nova venda",`
+    <div class="form-grid">
+
+      <div class="field">
+        <label>Cliente</label>
+        <select id="sClient">${options}</select>
+      </div>
+
+      <div class="field">
+        <label>Data</label>
+        <input type="date" id="sDate" value="${today()}">
+      </div>
+
+      <div class="field">
+        <label>Valor da venda</label>
+        <input type="number" step="0.01" id="sValue" placeholder="0,00">
+      </div>
+
+      <div class="field">
+        <label>Vencimento</label>
+        <input type="date" id="sDue">
+      </div>
+
+      <div class="field full">
+        <label>Observação</label>
+        <textarea id="sObs"></textarea>
+      </div>
+
+      <div class="full">
+        <button class="btn" onclick="saveSale()">
+          Salvar venda
+        </button>
+      </div>
+
+    </div>
+  `);
+}
+
+function saveSale(){
+
+  const client=Number(document.getElementById("sClient").value);
+  const value=Number(document.getElementById("sValue").value);
+
+  if(!value){
+    alert("Informe o valor da venda.");
+    return;
+  }
+
+  db.sales.push({
+    id:Date.now(),
+    client,
+    date:document.getElementById("sDate").value,
+    due:document.getElementById("sDue").value,
+    total:value,
+    received:0,
+    obs:document.getElementById("sObs").value
+  });
+
+  closeModal();
+  save();
+}
+
+function openPayment(){
+
+  if(!db.clients.length){
+    alert("Cadastre um cliente primeiro.");
+    return;
+  }
+
+  const options=db.clients.map(c=>
+    <option value="${c.id}">${c.name}</option>
+  ).join("");
+
+  openModal("Registrar pagamento",`
+    <div class="form-grid">
+
+      <div class="field">
+        <label>Cliente</label>
+        <select id="pClient">${options}</select>
+      </div>
+
+      <div class="field">
+        <label>Data</label>
+        <input type="date" id="pDate" value="${today()}">
+      </div>
+
+      <div class="field">
+        <label>Valor</label>
+        <input type="number" step="0.01" id="pValue">
+      </div>
+
+      <div class="field">
+        <label>Forma de pagamento</label>
+        <select id="pMethod">
+          <option>Pix</option>
+          <option>Dinheiro</option>
+          <option>Transferência</option>
+          <option>Cartão</option>
+          <option>Boleto</option>
+          <option>Cheque</option>
+        </select>
+      </div>
+
+      <div class="full">
+        <button class="btn green" onclick="savePayment()">
+          Registrar pagamento
+        </button>
+      </div>
+
+    </div>
+  `);
+}
+
+function savePayment(){
+
+  const value=Number(document.getElementById("pValue").value);
+
+  if(!value){
+    alert("Informe o valor.");
+    return;
+  }
+
+  db.payments.push({
+    id:Date.now(),
+    client:Number(document.getElementById("pClient").value),
+    date:document.getElementById("pDate").value,
+    value,
+    method:document.getElementById("pMethod").value
+  });
+
+  closeModal();
+  save();
+}
+
+function openNote(){
+
+  if(!db.clients.length){
+    alert("Cadastre um cliente primeiro.");
+    return;
+  }
+
+  const options=db.clients.map(c=>
+    <option value="${c.id}">${c.name}</option>
+  ).join("");
+
+  openModal("Nova nota / promissória",`
+    <div class="form-grid">
+
+      <div class="field">
+        <label>Cliente</label>
+        <select id="nClient">${options}</select>
+      </div>
+
+      <div class="field">
+        <label>Tipo de documento</label>
+        <select id="nType">
+          <option>Promissória</option>
+          <option>Nota fiscal</option>
+          <option>Duplicata</option>
+          <option>Outro</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Vencimento</label>
+        <input type="date" id="nDue">
+      </div>
+
+      <div class="field">
+        <label>Valor</label>
+        <input type="number" step="0.01" id="nValue">
+      </div>
+
+      <div class="field full">
+        <label>Foto da promissória / documento</label>
+        <input type="file" id="nPhoto" accept="image/*">
+      </div>
+
+      <div class="field full">
+        <label>Observações</label>
+        <textarea id="nObs"></textarea>
+      </div>
+
+      <div class="full">
+        <button class="btn gold" onclick="saveNote()">
+          Salvar documento
+        </button>
+      </div>
+
+    </div>
+  `);
+}
+
+function saveNote(){
+
+  const file=document.getElementById("nPhoto").files[0];
+
+  const finish=(photo="")=>{
+
+    db.notes.push({
+      id:Date.now(),
+      client:Number(document.getElementById("nClient").value),
+      type:document.getElementById("nType").value,
+      due:document.getElementById("nDue").value,
+      value:Number(document.getElementById("nValue").value || 0),
+      photo,
+      obs:document.getElementById("nObs").value
+    });
+
+    closeModal();
+    save();
+  };
+
+  if(file){
+    const reader=new FileReader();
+
+    reader.onload=e=>{
+      finish(e.target.result);
+    };
+
+    reader.readAsDataURL(file);
+  }else{
+    finish("");
+  }
+}
+
+function openProduct(){
+
+  openModal("Novo produto",`
+    <div class="form-grid">
+
+      <div class="field full">
+        <label>Produto</label>
+        <input id="prName">
+      </div>
+
+      <div class="field">
+        <label>Preço</label>
+        <input type="number" step="0.01" id="prPrice">
+      </div>
+
+      <div class="field">
+        <label>Estoque</label>
+        <input type="number" id="prStock">
+      </div>
+
+      <div class="full">
+        <button class="btn" onclick="saveProduct()">
+          Salvar produto
+        </button>
+      </div>
+
+    </div>
+  `);
+}
+
+function saveProduct(){
+
+  const name=document.getElementById("prName").value.trim();
+
+  if(!name){
+    alert("Informe o produto.");
+    return;
+  }
+
+  db.products.push({
+    id:Date.now(),
+    name,
+    price:Number(document.getElementById("prPrice").value || 0),
+    stock:Number(document.getElementById("prStock").value || 0)
+  });
+
+  closeModal();
+  save();
+}
+
+function clientName(id){
+  const c=db.clients.find(x=>x.id===Number(id));
+  return c ? c.name : "Cliente não encontrado";
+}
+
+function clientCity(id){
+  const c=db.clients.find(x=>x.id===Number(id));
+  return c ? c.city : "";
+}
+
+function isLate(due){
+
+  if(!due) return false;
+
+  return new Date(due+"T23:59:59") < new Date();
+}
+
+function totalSales(){
+  return db.sales.reduce((a,s)=>a+Number(s.total||0),0);
+}
+
+function totalReceived(){
+
+  return db.payments.reduce((a,p)=>a+Number(p.value||0),0)
+       + db.sales.reduce((a,s)=>a+Number(s.received||0),0);
+}
+
+function totalToReceive(){
+
+  return Math.max(0,totalSales()-totalReceived());
+}
+
+function lateTotal(){
+
+  return db.sales
+    .filter(s=>isLate(s.due))
+    .reduce((a,s)=>a+Math.max(0,Number(s.total)-Number(s.received||0)),0);
+}
+
+function renderDashboard(){
+
+  document.getElementById("dashSales").textContent=money(totalSales());
+  document.getElementById("dashReceived").textContent=money(totalReceived());
+  document.getElementById("dashToReceive").textContent=money(totalToReceive());
+  document.getElementById("dashLate").textContent=money(lateTotal());
+
+  const cities={};
+
+  db.sales.forEach(s=>{
+    const city=clientCity(s.client)||"Sem cidade";
+    cities[city]=(cities[city]||0)+Number(s.total||0);
+  });
+
+  const cityHTML=Object.entries(cities)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([city,total])=>
+      `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)">
+        <span>${city}</span>
+        <b>${money(total)}</b>
+      </div>`
+    ).join("");
+
+  document.getElementById("citySales").innerHTML=
+    cityHTML || <div class="empty">Nenhuma venda cadastrada.</div>;
+
+  const priority=db.sales
+    .filter(s=>isLate(s.due))
+    .sort((a,b)=>new Date(a.due)-new Date(b.due))
+    .slice(0,6);
+
+  document.getElementById("priorityCharges").innerHTML=
+    priority.length
+    ? priority.map(s=>`
+      <div style="padding:10px 0;border-bottom:1px solid var(--line)">
+        <b>${clientName(s.client)}</b>
+        <span style="float:right;color:var(--red);font-weight:bold">
+          ${money(Math.max(0,s.total-(s.received||0)))}
+        </span>
+        <div style="font-size:12px;color:var(--muted)">
+          Venc. ${s.due || "—"}
+        </div>
+      </div>
+    `).join("")
+    : <div class="empty">Nenhuma cobrança atrasada.</div>;
+
+  const recent=[...db.sales].reverse().slice(0,8);
+
+  document.getElementById("recentSales").innerHTML=
+    recent.length
+    ? `<div class="table-wrap">
+      <table>
+      <tr><th>Data</th><th>Cliente</th><th>Valor</th></tr>
+      ${recent.map(s=>`
+        <tr>
+          <td>${s.date}</td>
+          <td>${clientName(s.client)}</td>
+          <td>${money(s.total)}</td>
+        </tr>
+      `).join("")}
+      </table>
+      </div>`
+    : <div class="empty">Nenhuma venda cadastrada.</div>;
+}
+
+function renderSales(){
+
+  const el=document.getElementById("salesTable");
+
+  el.innerHTML=db.sales.length
+    ? [...db.sales].reverse().map(s=>{
+      const remaining=Math.max(0,s.total-(s.received||0));
+      return `
+      <tr>
+        <td>${s.date}</td>
+        <td>${clientName(s.client)}</td>
+        <td>${clientCity(s.client)}</td>
+        <td>${money(s.total)}</td>
+        <td>
+          ${remaining<=0
+            ? <span class="badge green">Recebido</span>
+            : isLate(s.due)
+            ? <span class="badge red">Atrasado</span>
+            : <span class="badge orange">A receber</span>
+          }
+        </td>
+      </tr>`;
+    }).join("")
+    : <tr><td colspan="5" class="empty">Nenhuma venda cadastrada.</td></tr>;
+}
+
+function renderClients(){
+
+  const el=document.getElementById("clientsTable");
+
+  el.innerHTML=db.clients.length
+    ? db.clients.map(c=>`
+      <tr>
+        <td>${c.name}</td>
+        <td>${c.city||"—"}</td>
+        <td>${c.phone||"—"}</td>
+        <td>${c.obs||"—"}</td>
+      </tr>
+    `).join("")
+    : <tr><td colspan="4" class="empty">Nenhum cliente cadastrado.</td></tr>;
+}
+
+function renderCharges(){
+
+  document.getElementById("chargeTotal").textContent=money(totalToReceive());
+  document.getElementById("chargeLate").textContent=money(lateTotal());
+
+  const rows=db.sales.filter(s=>
+    Number(s.total)>Number(s.received||0)
+  );
+
+  document.getElementById("chargesTable").innerHTML=
+    rows.length
+    ? rows.map(s=>`
+      <tr>
+        <td>${clientName(s.client)}</td>
+        <td>${s.due||"—"}</td>
+        <td>${money(Math.max(0,s.total-(s.received||0)))}</td>
+        <td>
+          ${isLate(s.due)
+            ? <span class="badge red">ATRASADA</span>
+            : <span class="badge orange">A RECEBER</span>
+          }
+        </td>
+      </tr>
+    `).join("")
+    : <tr><td colspan="4" class="empty">Nenhuma cobrança.</td></tr>;
+}
+
+function renderPayments(){
+
+  document.getElementById("paymentsTable").innerHTML=
+    db.payments.length
+    ? [...db.payments].reverse().map(p=>`
+      <tr>
+        <td>${p.date}</td>
+        <td>${clientName(p.client)}</td>
+        <td>${money(p.value)}</td>
+        <td>${p.method}</td>
+      </tr>
+    `).join("")
+    : <tr><td colspan="4" class="empty">Nenhum pagamento registrado.</td></tr>;
+}
+
+function renderNotes(){
+
+  document.getElementById("notesTable").innerHTML=
+    db.notes.length
+    ? [...db.notes].reverse().map(n=>`
+      <tr>
+        <td>${clientName(n.client)}</td>
+        <td>${n.type}</td>
+        <td>${n.due||"—"}</td>
+        <td>${money(n.value)}</td>
+        <td>
+          ${n.photo
+            ? `<a href="${n.photo}" target="_blank">
+                <img src="${n.photo}" style="width:50px;height:50px;object-fit:cover;border-radius:5px">
+              </a>`
+            : "—"
+          }
+        </td>
+        <td>
+          ${isLate(n.due)
+            ? <span class="badge red">ATRASADA</span>
+            : <span class="badge green">EM DIA</span>
+          }
+        </td>
+      </tr>
+    `).join("")
+    : <tr><td colspan="6" class="empty">Nenhum documento cadastrado.</td></tr>;
+}
+
+function renderProducts(){
+
+  document.getElementById("productsTable").innerHTML=
+    db.products.length
+    ? db.products.map(p=>`
+      <tr>
+        <td>${p.name}</td>
+        <td>${money(p.price)}</td>
+        <td>${p.stock}</td>
+      </tr>
+    `).join("")
+    : <tr><td colspan="3" class="empty">Nenhum produto cadastrado.</td></tr>;
+}
+
+function renderReports(){
+
+  const sales=totalSales();
+  const received=totalReceived();
+  const receive=totalToReceive();
+  const late=lateTotal();
+
+  document.getElementById("reportSales").textContent=money(sales);
+  document.getElementById("reportReceived").textContent=money(received);
+  document.getElementById("reportReceive").textContent=money(receive);
+  document.getElementById("reportLate").textContent=money(late);
+
+  document.getElementById("reportSummary").innerHTML=`
+    <p><b>Total de vendas:</b> ${money(sales)}</p>
+    <p><b>Total recebido:</b> ${money(received)}</p>
+    <p><b>Total a receber:</b> ${money(receive)}</p>
+    <p><b>Total atrasado:</b> ${money(late)}</p>
+    <p><b>Clientes cadastrados:</b> ${db.clients.length}</p>
+    <p><b>Vendas cadastradas:</b> ${db.sales.length}</p>
+    <p><b>Documentos cadastrados:</b> ${db.notes.length}</p>
+    <p><b>Produtos cadastrados:</b> ${db.products.length}</p>
+  `;
+}
+
+function render(){
+  renderDashboard();
+  renderSales();
+  renderClients();
+  renderCharges();
+  renderPayments();
+  renderNotes();
+  renderProducts();
+  renderReports();
+}
+
+function globalSearch(q){
+
+  q=q.toLowerCase().trim();
+
+  if(!q){
+    return;
+  }
+
+  const found=db.clients.filter(c=>
+    c.name.toLowerCase().includes(q) ||
+    (c.city||"").toLowerCase().includes(q) ||
+    (c.phone||"").toLowerCase().includes(q)
+  );
+
+  if(found.length){
+    showScreen("clientes");
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>
