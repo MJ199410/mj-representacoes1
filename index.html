@@ -1,570 +1,673 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MJ Representações</title>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f5f7fb;color:#172033}
-.app{display:flex;min-height:100vh}
-
-.sidebar{
- width:240px;background:#0757d5;color:white;padding:25px 15px;
-}
-.logo{text-align:center;margin-bottom:30px}
-.logo-mark{
- width:70px;height:70px;border:3px solid white;border-radius:50%;
- margin:auto;display:flex;align-items:center;justify-content:center;
- font-size:30px;font-weight:300
-}
-.logo b{display:block;font-size:22px;margin-top:10px}
-.logo span{font-size:12px;letter-spacing:4px}
-
-.menu button{
- width:100%;border:0;background:transparent;color:white;
- text-align:left;padding:14px;border-radius:8px;margin:3px 0;
- font-size:15px;cursor:pointer
-}
-.menu button:hover,.menu button.active{background:#0846a8}
-
-.main{flex:1;padding:25px;overflow:auto}
-.top{
- display:flex;justify-content:space-between;align-items:center;
- margin-bottom:25px
-}
-.search{
- width:380px;max-width:100%;padding:13px 16px;
- border:1px solid #ddd;border-radius:9px;font-size:15px
-}
-
-h1{margin:0 0 6px}
-.subtitle{color:#718096;margin-bottom:25px}
-
-.cards{
- display:grid;grid-template-columns:repeat(4,1fr);gap:15px
-}
-.card{
- background:white;padding:20px;border-radius:12px;
- box-shadow:0 2px 8px #00000010
-}
-.card small{color:#777}
-.card strong{display:block;font-size:24px;margin-top:10px}
-.blue{color:#0875ed}.green{color:#159447}
-.orange{color:#dc9410}.red{color:#d64747}
-
-.actions{
- display:flex;gap:12px;margin:25px 0;flex-wrap:wrap
-}
-.btn{
- border:0;padding:13px 20px;border-radius:8px;
- cursor:pointer;color:white;font-weight:bold
-}
-.btn-blue{background:#0875ed}
-.btn-green{background:#20a45a}
-.btn-orange{background:#d79a17}
-.btn-red{background:#d84a4a}
-
-.box{
- background:white;border-radius:12px;padding:20px;
- box-shadow:0 2px 8px #00000010;margin-bottom:20px
-}
-
-table{width:100%;border-collapse:collapse}
-th,td{text-align:left;padding:12px;border-bottom:1px solid #eee}
-th{color:#657084}
-
-input,select,textarea{
- width:100%;padding:12px;border:1px solid #d8dde6;
- border-radius:7px;margin-top:6px;margin-bottom:14px;
- font-size:15px
-}
-label{font-weight:bold;font-size:14px}
-
-.form-grid{
- display:grid;grid-template-columns:repeat(2,1fr);gap:15px
-}
-
-.hidden{display:none}
-
-@media(max-width:800px){
- .app{display:block}
- .sidebar{width:100%;padding:12px}
- .logo{margin-bottom:10px}
- .logo-mark{width:50px;height:50px;font-size:22px}
- .logo b{font-size:18px}
- .menu{display:flex;overflow:auto}
- .menu button{min-width:max-content;text-align:center}
- .main{padding:15px}
- .cards{grid-template-columns:repeat(2,1fr)}
- .top{display:block}
- .search{width:100%;margin-top:15px}
- .form-grid{grid-template-columns:1fr}
-}
-
-@media(max-width:480px){
- .cards{grid-template-columns:1fr}
-}
-
-.camera-box{border:2px dashed #0875ed;padding:18px;border-radius:10px;background:#f8fbff;margin:15px 0}
-.camera-actions{display:flex;gap:10px;flex-wrap:wrap}
-.camera-preview{max-width:100%;max-height:260px;border-radius:10px;margin-top:12px;display:none}
-.city-folders{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:15px}
-.city-folder{background:#f7f9fc;border:1px solid #e1e6ef;border-radius:10px;padding:15px;cursor:pointer}
-.city-folder:hover{background:#eef5ff}
-.ocr-status{font-size:13px;color:#657084;margin-top:10px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MJ Representações — Sistema de Gestão</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    :root {
+      --mj-fundo: #F2EFE4;
+      --mj-preto: #1C1C1C;
+      --mj-dourado: #B8860B;
+      --mj-dourado-claro: #D4AF37;
+      --mj-branco: #FFFFFF;
+      --mj-cinza: #E0DCD0;
+      --mj-verde: #2F855A;
+      --mj-vermelho: #C53030;
+      --sidebar: linear-gradient(180deg, #1C1C1C 0%, #333333 100%);
+      --sombra: 0 2px 8px rgba(28,28,28,0.08);
+    }
+    html, body { height: 100%; background: var(--mj-fundo); color: var(--mj-preto); }
+    .sidebar { background: var(--sidebar); color: white; }
+    .sidebar-item { border-left: 3px solid transparent; transition: 0.2s; }
+    .sidebar-item:hover, .sidebar-item.active { background: rgba(184,134,11,0.2); border-left-color: var(--mj-dourado); }
+    .card { background: var(--mj-branco); border: 1px solid var(--mj-cinza); border-radius: 12px; box-shadow: var(--sombra); }
+    .cidade-bloco { border-left: 4px solid var(--mj-dourado); background: rgba(242,239,228,0.6); }
+    .btn { border-radius: 8px; font-weight: 600; transition: 0.2s; border: none; cursor: pointer; }
+    .btn-preto { background: var(--mj-preto); color: white; }
+    .btn-preto:hover { background: #333; }
+    .btn-dourado { background: linear-gradient(135deg, var(--mj-dourado), var(--mj-dourado-claro)); color: white; }
+    .btn-dourado:hover { background: linear-gradient(135deg, #996E00, var(--mj-dourado)); }
+    .btn-whats { background: #25D366; color: white; }
+    .btn-verde { background: var(--mj-verde); color: white; }
+    .btn-vermelho { background: var(--mj-vermelho); color: white; }
+    .input-field { border: 1px solid var(--mj-cinza); border-radius: 8px; padding: 10px 12px; outline: none; transition: 0.2s; width: 100%; }
+    .input-field:focus { border-color: var(--mj-dourado); box-shadow: 0 0 0 3px rgba(184,134,11,0.15); }
+    .status-pendente { background: #FFF8DC; color: #8B6914; border: 1px solid #DEB887; }
+    .status-pago { background: #E8FBF2; color: #065F46; border: 1px solid #6EE7B7; }
+    .status-vencido { background: #FEF2F2; color: #991B1B; border: 1px solid #FCA5A5; }
+    .chip { padding: 6px 14px; border-radius: 20px; font-size: 13px; border: 1px solid var(--mj-cinza); background: white; cursor: pointer; transition: 0.2s; }
+    .chip:hover, .chip.active { border-color: var(--mj-dourado); background: var(--mj-dourado); color: white; }
+    .upload-box { border: 2px dashed var(--mj-cinza); border-radius: 10px; padding: 25px; text-align: center; cursor: pointer; transition: 0.2s; }
+    .upload-box:hover { border-color: var(--mj-dourado); background: rgba(184,134,11,0.05); }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; display: none; }
+    .modal-conteudo { background: white; border-radius: 16px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
+    .scroll { max-height: 500px; overflow-y: auto; }
+    .titulo-cidade { font-family: 'Playfair Display', serif; border-bottom: 2px solid var(--mj-dourado); }
+    .logo-mj { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 22px; border: 2px solid white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .oculto { display: none !important; }
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 50; width: 220px; transform: translateX(-100%); transition: 0.3s; }
+      .sidebar.aberto { transform: translateX(0); }
+    }
+  </style>
 </head>
+<body class="flex">
 
-<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar w-64 flex flex-col flex-shrink-0" id="sidebar">
+    <div class="p-5 border-b border-white/15 flex items-center gap-3">
+      <div class="logo-mj">MJ</div>
+      <div>
+        <h1 class="text-lg font-semibold tracking-wide">MJ</h1>
+        <p class="text-xs text-gray-300 tracking-widest">REPRESENTAÇÕES</p>
+      </div>
+    </div>
+    <nav class="flex-1 py-4 px-2">
+      <a class="sidebar-item active flex items-center gap-3 px-3 py-3 rounded-lg mb-2" onclick="mostrarAba('dashboard')">
+        <span>📊</span> Dashboard
+      </a>
+      <a class="sidebar-item flex items-center gap-3 px-3 py-3 rounded-lg mb-2" onclick="mostrarAba('cobrancas')">
+        <span>💳</span> Cobranças
+      </a>
+      <a class="sidebar-item flex items-center gap-3 px-3 py-3 rounded-lg mb-2" onclick="mostrarAba('clientes')">
+        <span>👤</span> Clientes
+      </a>
+      <a class="sidebar-item flex items-center gap-3 px-3 py-3 rounded-lg mb-2" onclick="mostrarAba('mensagens')">
+        <span>💬</span> Mensagens
+      </a>
+    </nav>
+  </aside>
 
-<div class="app">
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="flex-1 p-4 md:p-6 overflow-y-auto">
+    <div class="max-w-7xl mx-auto">
 
-<aside class="sidebar">
+      <!-- DASHBOARD -->
+      <div id="aba-dashboard">
+        <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
+          <div>
+            <h2 class="text-2xl font-bold" style="font-family:'Playfair Display', serif;">Dashboard</h2>
+            <p class="text-sm text-gray-500">Por Cidade • <span id="dataHoje"></span></p>
+          </div>
+          <button class="btn btn-dourado px-4 py-2" onclick="novoCliente()">➕ Novo Cliente</button>
+        </div>
 
-<div class="logo">
- <div class="logo-mark">MJ</div>
- <b>REPRESENTAÇÕES</b>
- <span>SISTEMA</span>
-</div>
+        <!-- ALERTAS -->
+        <div id="alertas" class="mb-5 space-y-3"></div>
 
-<div class="menu">
-<button class="active" onclick="show('dashboard',this)">▣ Dashboard</button>
-<button onclick="show('vendas',this)">🛒 Vendas</button>
-<button onclick="show('clientes',this)">👥 Clientes</button>
-<button onclick="show('cobrancas',this)">💰 Cobranças</button>
-<button onclick="show('pagamentos',this)">✓ Pagamentos recebidos</button>
-<button onclick="show('notas',this)">▣ Notas / Documentos</button>
-<button onclick="show('produtos',this)">▤ Produtos</button>
-<button onclick="show('relatorios',this)">▥ Relatórios</button>
-</div>
+        <!-- TOTAIS GERAIS -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="card p-4">
+            <p class="text-sm text-gray-500">Total Clientes</p>
+            <p class="text-xl font-bold" id="tClientes">0</p>
+          </div>
+          <div class="card p-4">
+            <p class="text-sm text-gray-500">Em Aberto</p>
+            <p class="text-xl font-bold" style="color:var(--mj-dourado)" id="tAberto">R$0,00</p>
+          </div>
+          <div class="card p-4">
+            <p class="text-sm text-gray-500">Recebidos</p>
+            <p class="text-xl font-bold" style="color:var(--mj-verde)" id="tPago">R$0,00</p>
+          </div>
+          <div class="card p-4">
+            <p class="text-sm text-gray-500">Vencidos</p>
+            <p class="text-xl font-bold" style="color:var(--mj-vermelho)" id="tVencido">0</p>
+          </div>
+        </div>
 
-</aside>
+        <!-- FILTRO CIDADES -->
+        <div class="card p-4 mb-6">
+          <p class="font-semibold mb-3">📍 Filtrar por Cidade</p>
+          <div id="listaCidades" class="flex flex-wrap gap-2">
+            <span class="chip active" onclick="filtrarCidade('todas')">Todas</span>
+          </div>
+        </div>
 
-<main class="main">
+        <!-- FORM + LISTA -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- FORMULÁRIO -->
+          <div class="card p-5">
+            <h3 class="font-bold mb-4">📷 Nova Nota / Cliente</h3>
+            <label class="upload-box mb-4 block" for="fotoNota">
+              <input type="file" id="fotoNota" accept="image/*" capture="environment" class="hidden">
+              <div class="text-3xl mb-2">📄</div>
+              <p class="font-semibold">Tirar foto da Nota Promissória</p>
+              <p class="text-sm text-gray-500 mt-1">Preenche os dados automaticamente</p>
+            </label>
+            <div id="statusOcr" class="hidden mb-4 p-3 bg-yellow-50 rounded-lg text-sm">
+              <p>📄 Lendo a nota...</p>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <label class="text-sm font-medium">Nome *</label>
+                <input type="text" id="fNome" class="input-field" placeholder="Nome do cliente">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Telefone (WhatsApp) *</label>
+                <input type="tel" id="fTel" class="input-field" placeholder="(00) 00000-0000">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Cidade *</label>
+                <input type="text" id="fCidade" class="input-field" placeholder="Cidade">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-sm font-medium">Valor R$ *</label>
+                  <input type="text" id="fValor" class="input-field" placeholder="0,00">
+                </div>
+                <div>
+                  <label class="text-sm font-medium">Vencimento *</label>
+                  <input type="date" id="fData" class="input-field">
+                </div>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Nº Nota Promissória</label>
+                <input type="text" id="fNota" class="input-field" placeholder="Ex: Nº 12345">
+              </div>
+              <button class="btn btn-dourado w-full py-3 mt-2" onclick="salvarCliente()">✅ Salvar Cliente</button>
+            </div>
+          </div>
 
-<div class="top">
-<div>
-<h1 id="titulo">Dashboard</h1>
-<div class="subtitle">Visão geral das vendas e cobranças</div>
-</div>
-<input class="search" placeholder="Buscar cliente, venda, nota..." oninput="buscar(this.value)">
-</div>
+          <!-- LISTA POR CIDADE -->
+          <div class="lg:col-span-2">
+            <h3 class="font-bold mb-4">📋 Clientes por Cidade</h3>
+            <div id="conteudoCidades" class="space-y-5"></div>
+          </div>
+        </div>
+      </div>
 
-<!-- DASHBOARD -->
-<section id="dashboard">
+      <!-- COBRANÇAS -->
+      <div id="aba-cobrancas" class="oculto">
+        <h2 class="text-2xl font-bold mb-6" style="font-family:'Playfair Display', serif;">💳 Controle de Cobranças</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="card p-4 border-l-4 border-yellow-500">
+            <p class="font-bold text-yellow-600">⏰ Vencem em até 7 dias</p>
+            <p class="text-2xl font-bold my-2" id="cProx">0</p>
+            <button class="btn btn-dourado text-sm py-1.5 w-full" onclick="enviarPorTipo('proximos')">Enviar Lembretes</button>
+          </div>
+          <div class="card p-4 border-l-4 border-blue-500">
+            <p class="font-bold text-blue-600">📅 Vencem Hoje</p>
+            <p class="text-2xl font-bold my-2" id="cHoje">0</p>
+            <button class="btn btn-preto text-sm py-1.5 w-full" onclick="enviarPorTipo('hoje')">Enviar Aviso</button>
+          </div>
+          <div class="card p-4 border-l-4 border-red-500">
+            <p class="font-bold text-red-600">⚠️ Vencidas</p>
+            <p class="text-2xl font-bold my-2" id="cVenc">0</p>
+            <button class="btn btn-vermelho text-sm py-1.5 w-full" onclick="enviarPorTipo('vencidas')">Enviar Cobrança</button>
+          </div>
+        </div>
+        <div class="card p-5">
+          <h3 class="font-bold mb-4">Lista para Cobrança</h3>
+          <div id="listaCobrancas" class="space-y-3 scroll"></div>
+        </div>
+      </div>
 
-<div class="cards">
-<div class="card"><small>Vendas no período</small><strong class="blue" id="totalVendas">R$ 0,00</strong></div>
-<div class="card"><small>Recebidos</small><strong class="green" id="totalRecebidos">R$ 0,00</strong></div>
-<div class="card"><small>A receber</small><strong class="orange" id="totalReceber">R$ 0,00</strong></div>
-<div class="card"><small>Atrasados</small><strong class="red" id="totalAtrasados">R$ 0,00</strong></div>
-</div>
+      <!-- CLIENTES -->
+      <div id="aba-clientes" class="oculto">
+        <h2 class="text-2xl font-bold mb-6" style="font-family:'Playfair Display', serif;">👤 Todos os Clientes</h2>
+        <div class="card p-5">
+          <div id="listaTodosClientes" class="space-y-3 scroll"></div>
+        </div>
+      </div>
 
-<div class="actions">
-<button class="btn btn-blue" onclick="show('vendas')">+ Nova venda</button>
-<button class="btn btn-green" onclick="show('clientes')">+ Novo cliente</button>
-<button class="btn btn-orange" onclick="show('cobrancas')">Ver cobranças</button>
-</div>
+      <!-- MENSAGENS -->
+      <div id="aba-mensagens" class="oculto">
+        <h2 class="text-2xl font-bold mb-6" style="font-family:'Playfair Display', serif;">💬 Histórico de Mensagens</h2>
+        <div class="card p-5">
+          <div id="listaMsgs" class="space-y-3 scroll">
+            <p class="text-gray-500 text-center py-4">Nenhuma mensagem enviada ainda.</p>
+          </div>
+        </div>
+      </div>
 
-<div class="box">
-<h2>Vendas recentes</h2>
-<div id="recentes">Nenhuma venda cadastrada.</div>
-</div>
+    </div>
+  </main>
 
-</section>
+  <!-- MODAL MENSAGEM -->
+  <div id="modalMsg" class="modal">
+    <div class="modal-conteudo">
+      <h3 class="text-xl font-bold mb-4">💬 Enviar Mensagem</h3>
+      <div class="space-y-4">
+        <div>
+          <label class="text-sm font-medium">Tipo de Mensagem</label>
+          <select id="tipoMsg" class="input-field" onchange="atualizarPrevia()">
+            <option value="7dias">⏰ 7 dias antes</option>
+            <option value="1dia">📅 1 dia antes</option>
+            <option value="hoje">📌 Vence hoje</option>
+            <option value="vencido">⚠️ Já vencida</option>
+            <option value="pago">✅ Pagamento recebido</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-medium">Prévia</label>
+          <div id="previaMsg" class="p-3 rounded-lg bg-gray-50 text-sm whitespace-pre-wrap"></div>
+        </div>
+        <div class="flex gap-3 justify-end pt-2">
+          <button onclick="fecharModal()" class="btn px-4 py-2 border border-gray-300 bg-white">Cancelar</button>
+          <button onclick="enviarWhatsApp()" class="btn btn-whats px-4 py-2">💬 Enviar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<!-- VENDAS -->
-<section id="vendas" class="hidden">
-<div class="box">
-<h2>Nova venda</h2>
-
-<div class="form-grid">
-<div>
-<label>Cliente</label>
-<input id="vCliente" placeholder="Nome do cliente">
-</div>
-
-<div>
-<label>Produto</label>
-<input id="vProduto" placeholder="Produto">
-</div>
-
-<div>
-<label>Valor</label>
-<input id="vValor" type="number" step="0.01" placeholder="0,00">
-</div>
-
-<div>
-<label>Vencimento</label>
-<input id="vVencimento" type="date">
-</div>
-</div>
-
-<button class="btn btn-blue" onclick="novaVenda()">Salvar venda</button>
-</div>
-
-<div class="box">
-<h2>Vendas cadastradas</h2>
-<table>
-<thead><tr><th>Cliente</th><th>Produto</th><th>Valor</th><th>Vencimento</th></tr></thead>
-<tbody id="listaVendas"></tbody>
-</table>
-</div>
-</section>
-
-<!-- CLIENTES -->
-<section id="clientes" class="hidden">
-<div class="box">
-<h2>Novo cliente</h2>
-
-<div class="form-grid">
-<div>
-<label>Nome</label>
-<input id="cNome" placeholder="Nome do cliente">
-</div>
-
-<div>
-<label>Telefone / WhatsApp</label>
-<input id="cTelefone" placeholder="(00) 00000-0000">
-</div>
-
-<div>
-<label>Cidade</label>
-<input id="cCidade" placeholder="Cidade">
-</div>
-
-<div>
-<label>Observação</label>
-<input id="cObs" placeholder="Observação">
-</div>
-</div>
-
-<button class="btn btn-green" onclick="novoCliente()">Salvar cliente</button>
-</div>
-
-<div class="box"><h2>Pastas por cidade</h2><div id="pastasCidades" class="city-folders"><div class="city-folder">Nenhuma cidade cadastrada.</div></div></div>
-<div class="box">
-<h2>Clientes</h2>
-<table>
-<thead><tr><th>Nome</th><th>Telefone</th><th>Cidade</th></tr></thead>
-<tbody id="listaClientes"></tbody>
-</table>
-</div>
-</section>
-
-<!-- COBRANÇAS -->
-<section id="cobrancas" class="hidden">
-<div class="box">
-<h2>Cobranças</h2>
-<div id="listaCobrancas">Nenhuma cobrança cadastrada.</div>
-</div>
-</section>
-
-<!-- PAGAMENTOS -->
-<section id="pagamentos" class="hidden">
-<div class="box">
-<h2>Pagamentos recebidos</h2>
-<div id="listaPagamentos">Nenhum pagamento registrado.</div>
-</div>
-</section>
-
-<!-- NOTAS -->
-<section id="notas" class="hidden">
-<div class="box">
-<h2>Notas / Documentos</h2>
-
-<div class="camera-box">
-<h3>📷 Ler nota / promissória</h3>
-<p>Tire uma foto ou escolha uma imagem. O sistema tentará identificar os dados para você conferir.</p>
-<div class="camera-actions">
-<label class="btn btn-blue" style="display:inline-block;cursor:pointer">📷 Tirar foto
-<input id="fotoNota" type="file" accept="image/*" capture="environment" style="display:none" onchange="lerFotoNota(this)">
-</label>
-<label class="btn btn-green" style="display:inline-block;cursor:pointer">🖼️ Galeria
-<input type="file" accept="image/*" style="display:none" onchange="lerFotoNota(this)">
-</label>
-</div>
-<img id="previewNota" class="camera-preview" alt="Foto da nota">
-<div id="ocrStatus" class="ocr-status"></div>
-</div>
-<label>Cliente</label><input id="nCliente" placeholder="Cliente">
-<label>Telefone / WhatsApp</label><input id="nTelefone" placeholder="Telefone">
-<label>Valor</label><input id="nValor" type="number" step="0.01" placeholder="0,00">
-<label>Vencimento</label><input id="nVencimento" type="date">
-<label>Descrição da nota</label><textarea id="nDescricao" placeholder="Descrição"></textarea>
-<button class="btn btn-blue" onclick="novaNota()">Salvar nota</button>
-</div>
-
-<div class="box">
-<h2>Notas cadastradas</h2>
-<div id="listaNotas">Nenhuma nota cadastrada.</div>
-</div>
-</section>
-
-<!-- PRODUTOS -->
-<section id="produtos" class="hidden">
-<div class="box">
-<h2>Novo produto</h2>
-<label>Produto</label>
-<input id="pNome" placeholder="Nome do produto">
-
-<label>Preço</label>
-<input id="pValor" type="number" step="0.01">
-
-<button class="btn btn-blue" onclick="novoProduto()">Salvar produto</button>
-</div>
-
-<div class="box">
-<h2>Produtos</h2>
-<div id="listaProdutos">Nenhum produto cadastrado.</div>
-</div>
-</section>
-
-<!-- RELATÓRIOS -->
-<section id="relatorios" class="hidden">
-<div class="box">
-<h2>Relatórios</h2>
-<p>Total de clientes: <b id="rClientes">0</b></p>
-<p>Total de vendas: <b id="rVendas">R$ 0,00</b></p>
-<p>Total recebido: <b id="rRecebido">R$ 0,00</b></p>
-</div>
-</section>
-
-</main>
-</div>
+  <!-- MODAL CONFIRMAR PAGO -->
+  <div id="modalPago" class="modal">
+    <div class="modal-conteudo text-center">
+      <h3 class="text-xl font-bold mb-3">✅ Marcar como Pago?</h3>
+      <p class="mb-5 text-gray-600">Essa ação não pode ser desfeita.</p>
+      <div class="flex gap-3 justify-center">
+        <button onclick="fecharModalPago()" class="btn px-4 py-2 border border-gray-300 bg-white">Cancelar</button>
+        <button onclick="confirmarPago()" class="btn btn-verde px-4 py-2">✅ Sim, Pago!</button>
+      </div>
+    </div>
+  </div>
 
 <script>
-const STORAGE="mj_representacoes_sistema_zerado_v2";
+const STORAGE_CLIENTES = 'mj_clientes';
+const STORAGE_MSGS = 'mj_mensagens';
+let clientes = [];
+let mensagens = [];
+let filtroAtual = 'todas';
+let clienteParaMsg = null;
+let clienteParaPago = null;
 
-let db=JSON.parse(localStorage.getItem(STORAGE)||"null")||{
- clientes:[],
- vendas:[],
- pagamentos:[],
- notas:[],
- produtos:[],
- cidades:[]
+// Modelos de mensagens
+const MODELOS = {
+  '7dias': Olá {{nome}}! 😊\n\nPassando para lembrar que sua Nota Promissória {{nota}} no valor de {{valor}} vencerá em 7 dias — dia {{vencimento}}.\n\nContamos com seu pagamento! 💛\n\nAtenciosamente,\nMJ Representações 🤝,
+  '1dia': Olá {{nome}}! 👋\n\nSó um lembrete rápido: sua Nota Promissória {{nota}} no valor de {{valor}} vence AMANHÃ, dia {{vencimento}}.\n\nFicamos no aguardo! Obrigado! 💛\n\nAtenciosamente,\nMJ Representações 🤝,
+  'hoje': Olá {{nome}}! 📅\n\nPassando para avisar que HOJE é o vencimento da sua Nota Promissória {{nota}} no valor de {{valor}}.\n\nPor favor, efetue o pagamento o quanto antes. Agradecemos! 💛\n\nAtenciosamente,\nMJ Representações 🤝,
+  'vencido': Olá {{nome}}! ⚠️\n\nIdentificamos que sua Nota Promissória {{nota}} no valor de {{valor}} já está VENCIDA desde {{vencimento}}.\n\nPor favor, regularize o pagamento o mais breve possível. Agradecemos a atenção! 💛\n\nAtenciosamente,\nMJ Representações 🤝,
+  'pago': Olá {{nome}}! ✅\n\nConfirmamos o recebimento do pagamento referente à Nota Promissória {{nota}} no valor de {{valor}}. Muito obrigado! 🎉\n\nUm abraço,\nMJ Representações 🤝
 };
 
-function salvar(){
- localStorage.setItem(STORAGE,JSON.stringify(db));
- atualizar();
+document.addEventListener('DOMContentLoaded', () => {
+  carregarDados();
+  document.getElementById('dataHoje').textContent = new Date().toLocaleDateString('pt-BR');
+  configurarOcr();
+});
+
+function carregarDados() {
+  const c = localStorage.getItem(STORAGE_CLIENTES);
+  const m = localStorage.getItem(STORAGE_MSGS);
+  if (c) clientes = JSON.parse(c);
+  if (m) mensagens = JSON.parse(m);
+  atualizarTela();
 }
 
-function dinheiro(v){
- return Number(v||0).toLocaleString("pt-BR",{
- style:"currency",currency:"BRL"
- });
+function salvarDados() {
+  localStorage.setItem(STORAGE_CLIENTES, JSON.stringify(clientes));
+  localStorage.setItem(STORAGE_MSGS, JSON.stringify(mensagens));
+  atualizarTela();
 }
 
-function show(id,btn){
- document.querySelectorAll("main section").forEach(x=>x.classList.add("hidden"));
- document.getElementById(id).classList.remove("hidden");
-
- document.querySelectorAll(".menu button").forEach(x=>x.classList.remove("active"));
- if(btn)btn.classList.add("active");
-
- const nomes={
- dashboard:"Dashboard",
- vendas:"Vendas",
- clientes:"Clientes",
- cobrancas:"Cobranças",
- pagamentos:"Pagamentos recebidos",
- notas:"Notas / Documentos",
- produtos:"Produtos",
- relatorios:"Relatórios"
- };
-
- document.getElementById("titulo").textContent=nomes[id];
+function formatarDinheiro(v) {
+  return Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 }
 
-function novoCliente(){
- const nome=document.getElementById("cNome").value.trim();
- if(!nome)return alert("Digite o nome do cliente.");
-
- db.clientes.push({
-  nome,
-  telefone:document.getElementById("cTelefone").value,
-  cidade:document.getElementById("cCidade").value,
-  obs:document.getElementById("cObs").value
- });
-
- document.getElementById("cNome").value="";
- document.getElementById("cTelefone").value="";
- document.getElementById("cCidade").value="";
- document.getElementById("cObs").value="";
-
- salvar();
- alert("Cliente salvo!");
+function formatarData(d) {
+  if (!d) return '';
+  const [a, m, dia] = d.split('-');
+  return ${dia}/${m}/${a};
 }
 
-function novaVenda(){
- const cliente=document.getElementById("vCliente").value.trim();
- const produto=document.getElementById("vProduto").value.trim();
- const valor=Number(document.getElementById("vValor").value);
-
- if(!cliente||!valor){
-  return alert("Informe cliente e valor.");
- }
-
- db.vendas.push({
-  cliente,
-  produto,
-  valor,
-  vencimento:document.getElementById("vVencimento").value,
-  recebido:false
- });
-
- document.getElementById("vCliente").value="";
- document.getElementById("vProduto").value="";
- document.getElementById("vValor").value="";
- document.getElementById("vVencimento").value="";
-
- salvar();
- alert("Venda salva!");
+function diasParaVencer(d) {
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const venc = new Date(d + 'T00:00:00');
+  return Math.ceil((venc - hoje) / 86400000);
 }
 
-function novaNota(){
- const cliente=document.getElementById("nCliente").value.trim();
- if(!cliente)return alert("Confira o nome do cliente.");
- const nota={
-  cliente,
-  telefone:document.getElementById("nTelefone").value,
-  valor:Number(document.getElementById("nValor").value||0),
-  vencimento:document.getElementById("nVencimento").value,
-  descricao:document.getElementById("nDescricao").value,
-  foto:document.getElementById("previewNota").dataset.image||"",
-  data:new Date().toLocaleDateString("pt-BR")
- };
- db.notas.push(nota);
- if(!db.clientes.find(c=>c.nome.toLowerCase()===cliente.toLowerCase())){
-  db.clientes.push({nome:cliente,telefone:nota.telefone,cidade:"",obs:"Cliente cadastrado pela leitura da nota"});
- }
- ["nCliente","nTelefone","nValor","nVencimento","nDescricao"].forEach(id=>document.getElementById(id).value="");
- const p=document.getElementById("previewNota"); p.style.display="none"; p.removeAttribute("data-image");
- document.getElementById("ocrStatus").textContent="";
- salvar(); alert("Nota salva com sucesso!");
+function statusVencimento(d) {
+  const dias = diasParaVencer(d);
+  if (dias < 0) return 'vencido';
+  if (dias === 0) return 'hoje';
+  if (dias <= 7) return 'proximo';
+  return 'pendente';
 }
 
-async function lerFotoNota(input){
- const file=input.files&&input.files[0]; if(!file)return;
- const preview=document.getElementById("previewNota"), status=document.getElementById("ocrStatus");
- const reader=new FileReader();
- reader.onload=async e=>{
-  preview.src=e.target.result; preview.dataset.image=e.target.result; preview.style.display="block";
-  status.textContent="Lendo a nota... aguarde.";
-  try{
-   const result=await Tesseract.recognize(e.target.result,"por+eng");
-   const texto=(result.data.text||"").replace(/\s+/g," ").trim();
-   const vm=texto.match(/(?:R\$?\s*)(\d{1,3}(?:[.\s]\d{3})*(?:,\d{2})|\d+(?:[.,]\d{2}))/i);
-   if(vm){const v=vm[1].replace(/\./g,"").replace(",","."); if(!isNaN(Number(v)))document.getElementById("nValor").value=Number(v).toFixed(2);}
-   const dm=texto.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\b/);
-   if(dm){let y=dm[3];if(y.length===2)y="20"+y;document.getElementById("nVencimento").value=${y}-${dm[2].padStart(2,"0")}-${dm[1].padStart(2,"0")};}
-   status.textContent=texto?"Leitura concluída. Confira os campos antes de salvar.":"Não consegui ler o texto. Preencha manualmente.";
-  }catch(e){status.textContent="Não foi possível fazer a leitura automática. A foto continua disponível para salvar.";}
- };
- reader.readAsDataURL(file);
+function atualizarTela() {
+  // Totais
+  const aberto = clientes.filter(c => c.status !== 'pago').reduce((s,c) => s + Number(c.valor), 0);
+  const pago = clientes.filter(c => c.status === 'pago').reduce((s,c) => s + Number(c.valor), 0);
+  const vencidos = clientes.filter(c => statusVencimento(c.vencimento) === 'vencido' && c.status !== 'pago').length;
+  const proximos = clientes.filter(c => statusVencimento(c.vencimento) === 'proximo' && c.status !== 'pago').length;
+  
+  document.getElementById('tClientes').textContent = clientes.length;
+  document.getElementById('tAberto').textContent = R$ ${formatarDinheiro(aberto)};
+  document.getElementById('tPago').textContent = R$ ${formatarDinheiro(pago)};
+  document.getElementById('tVencido').textContent = vencidos;
+
+  // Contagem cobranças
+  document.getElementById('cProx').textContent = proximos;
+  document.getElementById('cHoje').textContent = clientes.filter(c => statusVencimento(c.vencimento) === 'hoje' && c.status !== 'pago').length;
+  document.getElementById('cVenc').textContent = vencidos;
+
+  // Atualizar filtro de cidades
+  atualizarListaCidades();
+
+  // Alertas
+  atualizarAlertas();
+
+  // Conteúdo por cidade
+  atualizarConteudoCidades();
+
+  // Listas
+  atualizarListaCobrancas();
+  atualizarListaTodosClientes();
+  atualizarListaMensagens();
 }
 
-
-function novoProduto(){
- const nome=document.getElementById("pNome").value.trim();
- const valor=Number(document.getElementById("pValor").value);
-
- if(!nome)return alert("Informe o produto.");
-
- db.produtos.push({nome,valor});
-
- document.getElementById("pNome").value="";
- document.getElementById("pValor").value="";
-
- salvar();
- alert("Produto salvo!");
+function atualizarListaCidades() {
+  const cidades = [...new Set(clientes.map(c => c.cidade).filter(Boolean))].sort();
+  const container = document.getElementById('listaCidades');
+  container.innerHTML = <span class="chip ${filtroAtual === 'todas' ? 'active' : ''}" onclick="filtrarCidade('todas')">Todas</span>;
+  cidades.forEach(cid => {
+    container.innerHTML += <span class="chip ${filtroAtual === cid ? 'active' : ''}" onclick="filtrarCidade('${cid}')">${cid}</span>;
+  });
 }
 
-function atualizar(){
-
- const vendas=db.vendas.reduce((s,v)=>s+Number(v.valor||0),0);
- const recebidos=db.pagamentos.reduce((s,p)=>s+Number(p.valor||0),0);
- const receber=vendas-recebidos;
-
- document.getElementById("totalVendas").textContent=dinheiro(vendas);
- document.getElementById("totalRecebidos").textContent=dinheiro(recebidos);
- document.getElementById("totalReceber").textContent=dinheiro(Math.max(receber,0));
- document.getElementById("totalAtrasados").textContent=dinheiro(0);
-
- document.getElementById("rClientes").textContent=db.clientes.length;
- document.getElementById("rVendas").textContent=dinheiro(vendas);
- document.getElementById("rRecebido").textContent=dinheiro(recebidos);
-
- const cidades={};
- db.clientes.forEach(c=>{const cidade=(c.cidade||"Sem cidade").trim()||"Sem cidade";cidades[cidade]=(cidades[cidade]||0)+1;});
- const pastaEl=document.getElementById("pastasCidades");
- const nomesCidades=Object.keys(cidades);
- pastaEl.innerHTML=nomesCidades.length?nomesCidades.map(c=><div class="city-folder" onclick="filtrarCidade('${encodeURIComponent(c)}')">📁 <b>${c}</b><br><small>${cidades[c]} cliente(s)</small></div>).join(""):'<div class="city-folder">Nenhuma cidade cadastrada.</div>';
-
-document.getElementById("listaClientes").innerHTML=
- db.clientes.length?
- db.clientes.map(c=><tr><td>${c.nome}</td><td>${c.telefone||"-"}</td><td>${c.cidade||"-"}</td></tr>).join("")
- :"";
-
- document.getElementById("listaVendas").innerHTML=
- db.vendas.length?
- db.vendas.map(v=><tr><td>${v.cliente}</td><td>${v.produto||"-"}</td><td>${dinheiro(v.valor)}</td><td>${v.vencimento||"-"}</td></tr>).join("")
- :"";
-
- document.getElementById("recentes").innerHTML=
- db.vendas.length?
- db.vendas.slice(-5).reverse().map(v=><p><b>${v.cliente}</b> — ${v.produto||"Venda"} — ${dinheiro(v.valor)}</p>).join("")
- :"Nenhuma venda cadastrada.";
-
- document.getElementById("listaNotas").innerHTML=
- db.notas.length?
- db.notas.map(n=><p><b>${n.cliente}</b> — ${n.descricao||"Nota"} — ${n.data}</p>).join("")
- :"Nenhuma nota cadastrada.";
-
- document.getElementById("listaProdutos").innerHTML=
- db.produtos.length?
- db.produtos.map(p=><p><b>${p.nome}</b> — ${dinheiro(p.valor)}</p>).join("")
- :"Nenhum produto cadastrado.";
-
- document.getElementById("listaCobrancas").innerHTML=
- db.vendas.length?
- db.vendas.map(v=>`
- <div class="box">
- <b>${v.cliente}</b><br>
- Valor: ${dinheiro(v.valor)}<br>
- Vencimento: ${v.vencimento||"-"}<br><br>
- <button class="btn btn-green" onclick="cobrar('${encodeURIComponent(v.cliente)}','${encodeURIComponent(v.valor)}')">
- 📱 Cobrar pelo WhatsApp
- </button>
- </div>`).join("")
- :"Nenhuma cobrança cadastrada.";
+function filtrarCidade(cidade) {
+  filtroAtual = cidade;
+  atualizarListaCidades();
+  atualizarConteudoCidades();
 }
 
-function cobrar(cliente,valor){
- const nome=decodeURIComponent(cliente);
- const val=decodeURIComponent(valor);
-
- const texto=Olá ${nome}, tudo bem? Passando para lembrar sobre o pagamento no valor de ${dinheiro(val)}. Obrigado!;
-
- alert("Mensagem pronta para cobrança:\n\n"+texto);
+function atualizarAlertas() {
+  const vencidos = clientes.filter(c => statusVencimento(c.vencimento) === 'vencido' && c.status !== 'pago');
+  const proximos = clientes.filter(c => statusVencimento(c.vencimento) === 'proximo' && c.status !== 'pago');
+  let html = '';
+  if (vencidos.length > 0) {
+    html += `<div class="card p-4 border-l-4 border-red-500">
+      <p class="font-bold text-red-600">⚠️ ${vencidos.length} cliente(s) com pagamento ATRASADO!</p>
+      <button class="btn btn-vermelho text-sm mt-2 px-3 py-1" onclick="mostrarAba('cobrancas')">Ver Cobranças</button>
+    </div>`;
+  }
+  if (proximos.length > 0) {
+    html += `<div class="card p-4 border-l-4 border-yellow-500">
+      <p class="font-bold text-yellow-600">⏰ ${proximos.length} cliente(s) vencem nos próximos 7 dias!</p>
+      <button class="btn btn-dourado text-sm mt-2 px-3 py-1" onclick="enviarPorTipo('proximos')">Enviar Lembretes</button>
+    </div>`;
+  }
+  document.getElementById('alertas').innerHTML = html;
 }
 
-function filtrarCidade(cidade){const alvo=decodeURIComponent(cidade).toLowerCase();document.querySelectorAll('#listaClientes tr').forEach(tr=>tr.style.display=tr.innerText.toLowerCase().includes(alvo)?'':'none');show('clientes');}
+function atualizarConteudoCidades() {
+  let dados = clientes;
+  if (filtroAtual !== 'todas') {
+    dados = clientes.filter(c => c.cidade === filtroAtual);
+  }
+  const cidades = [...new Set(dados.map(c => c.cidade).filter(Boolean))].sort();
+  const container = document.getElementById('conteudoCidades');
+  
+  if (dados.length === 0) {
+    container.innerHTML = <div class="card p-8 text-center text-gray-500">Nenhum cliente cadastrado ainda.</div>;
+    return;
+  }
 
-function buscar(q){
- q=q.toLowerCase();
-
- document.querySelectorAll("tbody tr").forEach(tr=>{
-  tr.style.display=tr.innerText.toLowerCase().includes(q)?"":"none";
- });
+  container.innerHTML = cidades.map(cidade => {
+    const cliCidade = dados.filter(c => c.cidade === cidade);
+    const totalAberto = cliCidade.filter(c => c.status !== 'pago').reduce((s,c) => s + Number(c.valor), 0);
+    const totalPago = cliCidade.filter(c => c.status === 'pago').reduce((s,c) => s + Number(c.valor), 0);
+    
+    return `
+      <div class="card p-5 cidade-bloco">
+        <h4 class="titulo-cidade text-xl font-bold pb-2 mb-3">📍 ${cidade}</h4>
+        <div class="flex gap-4 mb-4 text-sm">
+          <span><strong>Clientes:</strong> ${cliCidade.length}</span>
+          <span style="color:var(--mj-dourado)"><strong>Em Aberto:</strong> R$ ${formatarDinheiro(totalAberto)}</span>
+          <span style="color:var(--mj-verde)"><strong>Pago:</strong> R$ ${formatarDinheiro(totalPago)}</span>
+        </div>
+        <div class="space-y-3">
+          ${cliCidade.map(c => {
+            const st = statusVencimento(c.vencimento);
+            const classe = c.status === 'pago' ? 'status-pago' : st === 'vencido' ? 'status-vencido' : 'status-pendente';
+            const label = c.status === 'pago' ? '✅ Pago' : st === 'vencido' ? '⚠️ Vencido' : st === 'hoje' ? '📅 Hoje' : ⏰ ${diasParaVencer(c.vencimento)} dias;
+            return `
+              <div class="p-3 rounded-lg border ${classe} flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                <div>
+                  <p class="font-semibold">${c.nome}</p>
+                  <p class="text-sm">Nota: ${c.nota || '—'} • Venc: ${formatarData(c.vencimento)} • R$ ${formatarDinheiro(c.valor)}</p>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                  <span class="text-xs px-2 py-1 rounded-full bg-white/60">${label}</span>
+                  ${c.status !== 'pago' ? `
+                    <button class="btn btn-whats text-xs px-2 py-1" onclick="abrirModalMsg(${c.id})">💬</button>
+                    <button class="btn btn-verde text-xs px-2 py-1" onclick="abrirModalPago(${c.id})">✓ Pago</button>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
-atualizar();
+function atualizarListaCobrancas() {
+  const pendentes = clientes.filter(c => c.status !== 'pago').sort((a,b) => new Date(a.vencimento) - new Date(b.vencimento));
+  const container = document.getElementById('listaCobrancas');
+  container.innerHTML = pendentes.length === 0 
+    ? '<p class="text-gray-500 text-center py-4">Nenhuma cobrança pendente!</p>'
+    : pendentes.map(c => {
+      const st = statusVencimento(c.vencimento);
+      const label = st === 'vencido' ? '⚠️ Vencido' : st === 'hoje' ? '📅 Hoje' : ⏰ ${diasParaVencer(c.vencimento)} dias;
+      return `
+        <div class="p-3 border rounded-lg flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <div>
+            <p class="font-semibold">${c.nome} — ${c.cidade}</p>
+            <p class="text-sm">Nota: ${c.nota || '—'} • R$ ${formatarDinheiro(c.valor)} • Venc: ${formatarData(c.vencimento)}</p>
+          </div>
+          <div class="flex gap-2 flex-shrink-0">
+            <span class="text-xs px-2 py-1 rounded-full bg-gray-100">${label}</span>
+            <button class="btn btn-whats text-xs px-3 py-1" onclick="abrirModalMsg(${c.id})">💬 Enviar</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+}
+
+function atualizarListaTodosClientes() {
+  const container = document.getElementById('listaTodosClientes');
+  container.innerHTML = clientes.length === 0 
+    ? '<p class="text-gray-500 text-center py-4">Nenhum cliente cadastrado.</p>'
+    : clientes.map(c => {
+      const st = c.status === 'pago' ? 'Pago' : statusVencimento(c.vencimento) === 'vencido' ? 'Vencido' : 'Pendente';
+      return `
+        <div class="p-3 border rounded-lg flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+          <div>
+            <p class="font-semibold">${c.nome} — ${c.cidade}</p>
+            <p class="text-sm">Tel: ${c.telefone} • Nota: ${c.nota || '—'} • R$ ${formatarDinheiro(c.valor)} • Venc: ${formatarData(c.vencimento)}</p>
+          </div>
+          <span class="text-xs px-3 py-1 rounded-full ${c.status === 'pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${st}</span>
+        </div>
+      `;
+    }).join('');
+}
+
+function atualizarListaMensagens() {
+  const container = document.getElementById('listaMsgs');
+  container.innerHTML = mensagens.length === 0 
+    ? '<p class="text-gray-500 text-center py-4">Nenhuma mensagem enviada ainda.</p>'
+    : mensagens.map(m => `
+      <div class="p-3 border rounded-lg">
+        <div class="flex justify-between items-start mb-2">
+          <p class="font-semibold">${m.nome}</p>
+          <span class="text-xs text-gray-500">${new Date(m.data).toLocaleString('pt-BR')}</span>
+        </div>
+        <p class="text-sm whitespace-pre-wrap bg-gray-50 p-2 rounded">${m.texto}</p>
+      </div>
+    `).join('');
+}
+
+// Navegação
+function mostrarAba(nome) {
+  ['dashboard', 'cobrancas', 'clientes', 'mensagens'].forEach(aba => {
+    document.getElementById(aba-${aba}).classList.add('oculto');
+  });
+  document.getElementById(aba-${nome}).classList.remove('oculto');
+  
+  document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+  event.target.closest('.sidebar-item')?.classList.add('active');
+}
+
+// Salvar cliente
+function novoCliente() {
+  ['fNome', 'fTel', 'fCidade', 'fValor', 'fData', 'fNota'].forEach(id => document.getElementById(id).value = '');
+}
+
+function salvarCliente() {
+  const nome = document.getElementById('fNome').value.trim();
+  const telefone = document.getElementById('fTel').value.trim();
+  const cidade = document.getElementById('fCidade').value.trim();
+  const valor = parseFloat(document.getElementById('fValor').value.replace(',', '.'));
+  const vencimento = document.getElementById('fData').value;
+  const nota = document.getElementById('fNota').value.trim();
+
+  if (!nome || !telefone || !cidade || !valor || !vencimento) {
+    alert('Preencha todos os campos obrigatórios!');
+    return;
+  }
+
+  const novo = {
+    id: Date.now(),
+    nome,
+    telefone,
+    cidade,
+    valor,
+    vencimento,
+    nota,
+    status: 'pendente',
+    dataCriacao: new Date().toISOString()
+  };
+
+  clientes.push(novo);
+  salvarDados();
+  novoCliente();
+  alert('✅ Cliente salvo com sucesso!');
+}
+
+// Mensagens
+function abrirModalMsg(id) {
+  clienteParaMsg = clientes.find(c => c.id === id);
+  document.getElementById('modalMsg').style.display = 'flex';
+  atualizarPrevia();
+}
+
+function fecharModal() {
+  document.getElementById('modalMsg').style.display = 'none';
+  clienteParaMsg = null;
+}
+
+function atualizarPrevia() {
+  if (!clienteParaMsg) return;
+  const tipo = document.getElementById('tipoMsg').value;
+  let texto = MODELOS[tipo];
+  texto = texto.replaceAll('{{nome}}', clienteParaMsg.nome)
+               .replaceAll('{{nota}}', clienteParaMsg.nota || '—')
+               .replaceAll('{{valor}}', R$ ${formatarDinheiro(clienteParaMsg.valor)})
+               .replaceAll('{{vencimento}}', formatarData(clienteParaMsg.vencimento));
+  document.getElementById('previaMsg').textContent = texto;
+}
+
+function enviarWhatsApp() {
+  if (!clienteParaMsg) return;
+  const tipo = document.getElementById('tipoMsg').value;
+  let texto = MODELOS[tipo];
+  texto = texto.replaceAll('{{nome}}', clienteParaMsg.nome)
+               .replaceAll('{{nota}}', clienteParaMsg.nota || '—')
+               .replaceAll('{{valor}}', R$ ${formatarDinheiro(clienteParaMsg.valor)})
+               .replaceAll('{{vencimento}}', formatarData(clienteParaMsg.vencimento));
+  
+  // Salvar no histórico
+  mensagens.unshift({
+    id: Date.now(),
+    nome: clienteParaMsg.nome,
+    telefone: clienteParaMsg.telefone,
+    tipo,
+    texto,
+    data: new Date().toISOString()
+  });
+  localStorage.setItem(STORAGE_MSGS, JSON.stringify(mensagens));
+  atualizarListaMensagens();
+
+  // Abrir WhatsApp
+  const tel = clienteParaMsg.telefone.replace(/\D/g, '');
+  window.open(https://wa.me/55${tel}?text=${encodeURIComponent(texto)}, '_blank');
+  
+  fecharModal();
+}
+
+function enviarPorTipo(tipo) {
+  let alvo = [];
+  if (tipo === 'proximos') alvo = clientes.filter(c => statusVencimento(c.vencimento) === 'proximo' && c.status !== 'pago');
+  else if (tipo === 'hoje') alvo = clientes.filter(c => statusVencimento(c.vencimento) === 'hoje' && c.status !== 'pago');
+  else if (tipo === 'vencidas') alvo = clientes.filter(c => statusVencimento(c.vencimento) === 'vencido' && c.status !== 'pago');
+  
+  if (alvo.length === 0) {
+    alert('Nenhum cliente encontrado para este tipo!');
+    return;
+  }
+  
+  if (confirm(Enviar mensagem para ${alvo.length} cliente(s)?)) {
+    alvo.forEach((c, i) => {
+      setTimeout(() => {
+        clienteParaMsg = c;
+        const tipoMsg = tipo === 'proximos' ? '7dias' : tipo === 'hoje' ? 'hoje' : 'vencido';
+        document.getElementById('tipoMsg').value = tipoMsg;
+        atualizarPrevia();
+        enviarWhatsApp();
+      }, i * 2000); // 2s entre cada mensagem
+    });
+  }
+}
+
+// Marcar como pago
+function abrirModalPago(id) {
+  clienteParaPago = id;
+  document.getElementById('modalPago').style.display = 'flex';
+}
+
+function fecharModalPago() {
+  document.getElementById('modalPago').style.display = 'none';
+  clienteParaPago = null;
+}
+
+function confirmarPago() {
+  const c = clientes.find(cli => cli.id === clienteParaPago);
+  if (c) {
+    c.status = 'pago';
+    salvarDados();
+  }
+  fecharModalPago();
+}
+
+// OCR - Foto da nota
+function configurarOcr() {
+  const input = document.getElementById('fotoNota');
+  input.addEventListener('change', async (e) => {
+    const arq = e.target.files[0];
+    if (!arq) return;
+    document.getElementById('statusOcr').classList.remove('hidden');
+    document.getElementById('statusOcr').innerHTML = '<p>📄 Lendo a nota, aguarde...</p>';
+    
+    // Simulação - para usar OCR real precisa de servidor, mas preencha manualmente
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      // Aqui poderia integrar OCR real
+      setTimeout(() => {
+        document.getElementById('statusOcr').innerHTML = '<p>✅ Nota carregada! Preencha os dados abaixo.</p>';
+      }, 1500);
+    };
+    leitor.readAsDataURL(arq);
+  });
+}
+
 </script>
-
 </body>
-</html
+</html>
