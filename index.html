@@ -6,8 +6,6 @@
   <title>MJ Representações — Sistema de Gestão</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 📚 Biblioteca de Leitura Automática (OCR) -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
     :root {
@@ -19,6 +17,7 @@
       --mj-cinza: #E0DCD0;
       --mj-verde: #2F855A;
       --mj-vermelho: #C53030;
+      --mj-whats: #25D366;
       --sidebar: linear-gradient(180deg, #1C1C1C 0%, #333333 100%);
       --sombra: 0 2px 8px rgba(28,28,28,0.08);
     }
@@ -33,7 +32,8 @@
     .btn-preto:hover { background: #333; }
     .btn-dourado { background: linear-gradient(135deg, var(--mj-dourado), var(--mj-dourado-claro)); color: white; }
     .btn-dourado:hover { background: linear-gradient(135deg, #996E00, var(--mj-dourado)); }
-    .btn-whats { background: #25D366; color: white; }
+    .btn-whats { background: var(--mj-whats); color: white; }
+    .btn-whats:hover { background: #1fb85a; }
     .btn-verde { background: var(--mj-verde); color: white; }
     .btn-vermelho { background: var(--mj-vermelho); color: white; }
     .input-field { border: 1px solid var(--mj-cinza); border-radius: 8px; padding: 10px 12px; outline: none; transition: 0.2s; width: 100%; }
@@ -44,7 +44,7 @@
     .chip { padding: 6px 14px; border-radius: 20px; font-size: 13px; border: 1px solid var(--mj-cinza); background: white; cursor: pointer; transition: 0.2s; }
     .chip:hover, .chip.active { border-color: var(--mj-dourado); background: var(--mj-dourado); color: white; }
     .upload-box { border: 2px dashed var(--mj-cinza); border-radius: 10px; padding: 25px; text-align: center; cursor: pointer; transition: 0.2s; }
-    .upload-box:hover, .upload-box.leitura { border-color: var(--mj-dourado); background: rgba(184,134,11,0.05); }
+    .upload-box:hover, .upload-box.ativo { border-color: var(--mj-dourado); background: rgba(184,134,11,0.05); }
     .preview-img { width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px; border: 2px solid var(--mj-dourado); margin-top: 12px; display: none; background: #f9f6ed; }
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; display: none; }
     .modal-conteudo { background: white; border-radius: 16px; padding: 24px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
@@ -52,9 +52,6 @@
     .titulo-cidade { font-family: 'Playfair Display', serif; border-bottom: 2px solid var(--mj-dourado); }
     .logo-mj { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 22px; border: 2px solid white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
     .oculto { display: none !important; }
-    .barra-progresso { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin-top: 10px; }
-    .barra-progresso > div { height: 100%; background: linear-gradient(90deg, var(--mj-dourado), var(--mj-dourado-claro)); width: 0%; transition: width 0.3s; }
-    .campo-preenchido { background: #f0fdf4; border-color: #22c55e; }
     @media (max-width: 768px) {
       .sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 50; width: 220px; transform: translateX(-100%); transition: 0.3s; }
       .sidebar.aberto { transform: translateX(0); }
@@ -149,17 +146,12 @@
           <div class="card p-5">
             <h3 class="font-bold mb-4">📷 Nova Nota / Cliente</h3>
             
-            <!-- ÁREA DE FOTO DA NOTA COM LEITURA AUTOMÁTICA -->
+            <!-- ÁREA DE FOTO DA NOTA -->
             <label class="upload-box mb-4 block" for="fotoNota" id="areaUpload">
               <input type="file" id="fotoNota" accept="image/*" capture="environment" class="hidden">
               <div class="text-3xl mb-2">📄</div>
               <p class="font-semibold">Tirar foto da Nota Promissória</p>
-              <p class="text-sm text-gray-500 mt-1">🤖 Os dados serão preenchidos automaticamente</p>
-              <!-- Barra de progresso da leitura -->
-              <div id="barraLeitura" class="barra-progresso oculto">
-                <div id="progressoLeitura"></div>
-              </div>
-              <!-- Prévia da foto -->
+              <p class="text-sm text-gray-500 mt-1">A foto é salva junto com os dados</p>
               <img id="previaFoto" class="preview-img" alt="Prévia da nota">
             </label>
 
@@ -170,7 +162,7 @@
               </div>
               <div>
                 <label class="text-sm font-medium">Telefone (WhatsApp) *</label>
-                <input type="tel" id="fTel" class="input-field" placeholder="(00) 00000-0000">
+                <input type="tel" id="fTel" class="input-field" placeholder="(31) 99999-9999" oninput="mascaraTelefone(this)">
               </div>
               <div>
                 <label class="text-sm font-medium">Cidade *</label>
@@ -179,7 +171,7 @@
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="text-sm font-medium">Valor R$ *</label>
-                  <input type="text" id="fValor" class="input-field" placeholder="0,00">
+                  <input type="text" id="fValor" class="input-field" placeholder="0,00" oninput="mascaraValor(this)">
                 </div>
                 <div>
                   <label class="text-sm font-medium">Vencimento *</label>
@@ -249,10 +241,10 @@
     </div>
   </main>
 
-  <!-- MODAL MENSAGEM -->
+  <!-- MODAL MENSAGEM WHATSAPP -->
   <div id="modalMsg" class="modal">
     <div class="modal-conteudo">
-      <h3 class="text-xl font-bold mb-4">💬 Enviar Mensagem</h3>
+      <h3 class="text-xl font-bold mb-4">💬 Enviar Mensagem WhatsApp</h3>
       <div class="space-y-4">
         <div>
           <label class="text-sm font-medium">Tipo de Mensagem</label>
@@ -265,12 +257,12 @@
           </select>
         </div>
         <div>
-          <label class="text-sm font-medium">Prévia</label>
-          <div id="previaMsg" class="p-3 rounded-lg bg-gray-50 text-sm whitespace-pre-wrap"></div>
+          <label class="text-sm font-medium">Prévia da Mensagem</label>
+          <div id="previaMsg" class="p-3 rounded-lg bg-gray-50 text-sm whitespace-pre-wrap border min-h-[80px]"></div>
         </div>
         <div class="flex gap-3 justify-end pt-2">
-          <button onclick="fecharModal()" class="btn px-4 py-2 border border-gray-300 bg-white">Cancelar</button>
-          <button onclick="enviarWhatsApp()" class="btn btn-whats px-4 py-2">💬 Enviar</button>
+          <button onclick="fecharModal()" class="btn px-4 py-2 border border-gray-300 bg-white text-gray-700">Cancelar</button>
+          <button onclick="enviarWhatsApp()" class="btn btn-whats px-4 py-2">💬 Enviar pelo WhatsApp</button>
         </div>
       </div>
     </div>
@@ -282,7 +274,7 @@
       <h3 class="text-xl font-bold mb-3">✅ Marcar como Pago?</h3>
       <p class="mb-5 text-gray-600">Essa ação não pode ser desfeita.</p>
       <div class="flex gap-3 justify-center">
-        <button onclick="fecharModalPago()" class="btn px-4 py-2 border border-gray-300 bg-white">Cancelar</button>
+        <button onclick="fecharModalPago()" class="btn px-4 py-2 border border-gray-300 bg-white text-gray-700">Cancelar</button>
         <button onclick="confirmarPago()" class="btn btn-verde px-4 py-2">✅ Sim, Pago!</button>
       </div>
     </div>
@@ -294,7 +286,7 @@
       <h3 class="text-xl font-bold mb-3">⚠️ Importar Dados?</h3>
       <p class="mb-5 text-gray-600">Isso <strong>substituirá TODOS</strong> os dados atuais! Certifique-se de ter feito backup.</p>
       <div class="flex gap-3 justify-center">
-        <button onclick="fecharModalImportar()" class="btn px-4 py-2 border border-gray-300 bg-white">Cancelar</button>
+        <button onclick="fecharModalImportar()" class="btn px-4 py-2 border border-gray-300 bg-white text-gray-700">Cancelar</button>
         <button onclick="confirmarImportar()" class="btn btn-dourado px-4 py-2">✅ Confirmar Importação</button>
       </div>
     </div>
@@ -303,7 +295,7 @@
 <script>
 const STORAGE_CLIENTES = 'mj_clientes';
 const STORAGE_MSGS = 'mj_mensagens';
-const VERSAO_SISTEMA = '2.0-OCR';
+const VERSAO_SISTEMA = '2.1-WHATSAPP-FIX';
 let clientes = [];
 let mensagens = [];
 let filtroAtual = 'todas';
@@ -312,13 +304,13 @@ let clienteParaPago = null;
 let dadosParaImportar = null;
 let fotoBase64 = null;
 
-// Modelos de mensagens
+// Modelos de mensagens prontas
 const MODELOS = {
-  '7dias': Olá {{nome}}! 😊\n\nPassando para lembrar que sua Nota Promissória {{nota}} no valor de {{valor}} vencerá em 7 dias — dia {{vencimento}}.\n\nContamos com seu pagamento! 💛\n\nAtenciosamente,\nMJ Representações 🤝,
-  '1dia': Olá {{nome}}! 👋\n\nSó um lembrete rápido: sua Nota Promissória {{nota}} no valor de {{valor}} vence AMANHÃ, dia {{vencimento}}.\n\nFicamos no aguardo! Obrigado! 💛\n\nAtenciosamente,\nMJ Representações 🤝,
-  'hoje': Olá {{nome}}! 📅\n\nPassando para avisar que HOJE é o vencimento da sua Nota Promissória {{nota}} no valor de {{valor}}.\n\nPor favor, efetue o pagamento o quanto antes. Agradecemos! 💛\n\nAtenciosamente,\nMJ Representações 🤝,
-  'vencido': Olá {{nome}}! ⚠️\n\nIdentificamos que sua Nota Promissória {{nota}} no valor de {{valor}} já está VENCIDA desde {{vencimento}}.\n\nPor favor, regularize o pagamento o mais breve possível. Agradecemos a atenção! 💛\n\nAtenciosamente,\nMJ Representações 🤝,
-  'pago': Olá {{nome}}! ✅\n\nConfirmamos o recebimento do pagamento referente à Nota Promissória {{nota}} no valor de {{valor}}. Muito obrigado! 🎉\n\nUm abraço,\nMJ Representações 🤝
+  '7dias': Olá {{nome}}! 😊\n\nPassando para lembrar que sua Nota Promissória {{nota}} no valor de R$ {{valor}} vencerá em 7 dias — dia {{vencimento}}.\n\nContamos com seu pagamento! 💛\n\nAtenciosamente,\nMJ Representações 🤝,
+  '1dia': Olá {{nome}}! 👋\n\nSó um lembrete rápido: sua Nota Promissória {{nota}} no valor de R$ {{valor}} vence AMANHÃ, dia {{vencimento}}.\n\nFicamos no aguardo! Obrigado! 💛\n\nAtenciosamente,\nMJ Representações 🤝,
+  'hoje': Olá {{nome}}! 📅\n\nPassando para avisar que HOJE é o vencimento da sua Nota Promissória {{nota}} no valor de R$ {{valor}}.\n\nPor favor, efetue o pagamento o quanto antes. Agradecemos! 💛\n\nAtenciosamente,\nMJ Representações 🤝,
+  'vencido': Olá {{nome}}! ⚠️\n\nIdentificamos que sua Nota Promissória {{nota}} no valor de R$ {{valor}} já está VENCIDA desde {{vencimento}}.\n\nPor favor, regularize o pagamento o mais breve possível. Agradecemos a atenção! 💛\n\nAtenciosamente,\nMJ Representações 🤝,
+  'pago': Olá {{nome}}! ✅\n\nConfirmamos o recebimento do pagamento referente à Nota Promissória {{nota}} no valor de R$ {{valor}}. Muito obrigado! 🎉\n\nUm abraço,\nMJ Representações 🤝
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -327,143 +319,50 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('dataHoje').textContent = new Date().toLocaleDateString('pt-BR');
 });
 
-// 📸 + 🤖 FUNÇÃO DE FOTO COM LEITURA AUTOMÁTICA
+// 📸 FUNÇÃO DE FOTO — SALVA E EXIBE
 function configurarUploadFoto() {
   const inputFoto = document.getElementById('fotoNota');
   const previewImg = document.getElementById('previaFoto');
   const areaUpload = document.getElementById('areaUpload');
-  const barraLeitura = document.getElementById('barraLeitura');
-  const progressoLeitura = document.getElementById('progressoLeitura');
 
   inputFoto.addEventListener('change', function(e) {
     const arquivo = e.target.files[0];
     if (!arquivo) return;
 
-    // Mostra visualização da foto
     const leitor = new FileReader();
     leitor.onload = function(event) {
       fotoBase64 = event.target.result;
       previewImg.src = fotoBase64;
       previewImg.style.display = 'block';
-      areaUpload.classList.add('leitura');
-      
-      // ⏳ Inicia leitura automática
-      barraLeitura.classList.remove('oculto');
-      progressoLeitura.style.width = '0%';
-      
-      lerNotaAutomaticamente(fotoBase64, progressoLeitura, barraLeitura);
+      areaUpload.classList.add('ativo');
     };
     leitor.readAsDataURL(arquivo);
   });
 }
 
-// 🤖 LEITURA AUTOMÁTICA DA NOTA — OCR
-async function lerNotaAutomaticamente(imagemUrl, progressoEl, barraEl) {
-  try {
-    progressoEl.style.width = '10%';
-    
-    // Processa a imagem e lê o texto
-    const resultado = await Tesseract.recognize(
-      imagemUrl,
-      'por', // 🇧🇷 Leitura em português
-      {
-        logger: m => {
-          if (m.status === 'recognizing text') {
-            const pct = Math.round(m.progress * 80) + 10;
-            progressoEl.style.width = pct + '%';
-          }
-        }
-      }
-    );
-
-    progressoEl.style.width = '100%';
-    
-    const textoCompleto = resultado.data.text;
-    console.log('📝 Texto lido da nota:', textoCompleto);
-    
-    // 🧩 Extrai os dados do texto
-    extrairDadosDoTexto(textoCompleto);
-    
-    // Esconde a barra depois de um tempo
-    setTimeout(() => {
-      barraEl.classList.add('oculto');
-      progressoEl.style.width = '0%';
-    }, 1500);
-    
-    alert('✅ Nota lida! Confira os dados preenchidos. 📝');
-    
-  } catch (erro) {
-    console.error('Erro na leitura:', erro);
-    barraEl.classList.add('oculto');
-    alert('⚠️ Não foi possível ler a nota. Preencha os dados manualmente.');
+// 📱 MÁSCARA DE TELEFONE
+function mascaraTelefone(input) {
+  let v = input.value.replace(/\D/g, '');
+  if (v.length > 11) v = v.substring(0, 11);
+  if (v.length > 6) {
+    input.value = (${v.substring(0,2)}) ${v.substring(2,7)}-${v.substring(7)};
+  } else if (v.length > 2) {
+    input.value = (${v.substring(0,2)}) ${v.substring(2)};
+  } else if (v.length > 0) {
+    input.value = (${v};
   }
 }
 
-// 🧩 EXTRAI OS DADOS E PREENCHE OS CAMPOS
-function extrairDadosDoTexto(texto) {
-  if (!texto) return;
-  
-  // Limpa o texto
-  const t = texto.replace(/\s+/g, ' ').trim();
-  
-  // 💰 Extrai VALOR (R$ 0.000,00 ou 0,00)
-  const regexValor = /R\$\s*([\d.,]+)|([\d]+\.[\d]{2,3},[\d]{2})|(\d+,\d{2})/i;
-  const matchValor = t.match(regexValor);
-  if (matchValor) {
-    const valorStr = matchValor[1] || matchValor[2] || matchValor[3];
-    if (valorStr) {
-      document.getElementById('fValor').value = valorStr.trim();
-      document.getElementById('fValor').classList.add('campo-preenchido');
-    }
-  }
+// 💰 MÁSCARA DE VALOR
+function mascaraValor(input) {
+  let v = input.value.replace(/\D/g, '');
+  v = (Number(v) / 100).toFixed(2).replace('.', ',');
+  input.value = v;
+}
 
-  // 📅 Extrai DATA (formato: dd/mm/aaaa ou dd-mm-aaaa)
-  const regexData = /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/;
-  const matchData = t.match(regexData);
-  if (matchData) {
-    const dia = matchData[1].padStart(2, '0');
-    const mes = matchData[2].padStart(2, '0');
-    const ano = matchData[3];
-    const dataIso = ${ano}-${mes}-${dia};
-    document.getElementById('fData').value = dataIso;
-    document.getElementById('fData').classList.add('campo-preenchido');
-  }
-
-  // 📄 Extrai NÚMERO DA NOTA
-  const regexNota = /(nota|promissória|nº|no\.?)\s*[:#]?\s*(\d+)/i;
-  const matchNota = t.match(regexNota);
-  if (matchNota) {
-    document.getElementById('fNota').value = matchNota[2];
-    document.getElementById('fNota').classList.add('campo-preenchido');
-  }
-
-  // 👤 Extrai NOME (procura após palavras como "cliente", "pagador", "devedor", "nome")
-  const palavrasChave = ['cliente', 'pagador', 'devedor', 'nome', 'senhor', 'sr\\.', 'sra\\.'];
-  for (const chave of palavrasChave) {
-    const regexNome = new RegExp(${chave}\\s*[:-]?\\s*([A-ZÀ-Ú][a-zà-ú]+(?:\\s+[A-ZÀ-Ú][a-zà-ú]+){1,4}), 'i');
-    const matchNome = t.match(regexNome);
-    if (matchNome) {
-      document.getElementById('fNome').value = matchNome[1].trim();
-      document.getElementById('fNome').classList.add('campo-preenchido');
-      break;
-    }
-  }
-
-  // 📱 Extrai TELEFONE
-  const regexTel = /\(?\d{2}\)?\s*\d{4,5}[-\s]?\d{4}/;
-  const matchTel = t.match(regexTel);
-  if (matchTel) {
-    document.getElementById('fTel').value = matchTel[0];
-    document.getElementById('fTel').classList.add('campo-preenchido');
-  }
-
-  // 📍 Extrai CIDADE
-  const regexCidade = /(cidade|local|município)\s*[:-]?\s*([A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Ú][a-zà-ú]+)?)/i;
-  const matchCidade = t.match(regexCidade);
-  if (matchCidade) {
-    document.getElementById('fCidade').value = matchCidade[2].trim();
-    document.getElementById('fCidade').classList.add('campo-preenchido');
-  }
+// 🔢 LIMPAR TELEFONE PARA WHATSAPP
+function limparTelefone(tel) {
+  return tel.replace(/\D/g, ''); // Remove tudo que não é número
 }
 
 function carregarDados() {
@@ -655,10 +554,10 @@ function atualizarConteudoCidades() {
                   <p class="font-semibold">${c.nome} ${temFoto}</p>
                   <p class="text-sm">Nota: ${c.nota || '—'} • Venc: ${formatarData(c.vencimento)} • R$ ${formatarDinheiro(c.valor)}</p>
                 </div>
-                <div class="flex gap-2 flex-shrink-0">
+                <div class="flex gap-2 flex-shrink-0 items-center">
                   <span class="text-xs px-2 py-1 rounded-full bg-white/60">${label}</span>
+                  <a href="https://wa.me/55${limparTelefone(c.telefone)}" target="_blank" class="btn btn-whats text-xs px-2 py-1 no-underline">💬</a>
                   ${c.status !== 'pago' ? `
-                    <button class="btn btn-whats text-xs px-2 py-1" onclick="abrirModalMsg(${c.id})">💬</button>
                     <button class="btn btn-verde text-xs px-2 py-1" onclick="abrirModalPago(${c.id})">✓ Pago</button>
                   ` : ''}
                 </div>
@@ -685,7 +584,7 @@ function atualizarListaCobrancas() {
             <p class="font-semibold">${c.nome} — ${c.cidade}</p>
             <p class="text-sm">Nota: ${c.nota || '—'} • R$ ${formatarDinheiro(c.valor)} • Venc: ${formatarData(c.vencimento)}</p>
           </div>
-          <div class="flex gap-2 flex-shrink-0">
+          <div class="flex gap-2 flex-shrink-0 items-center">
             <span class="text-xs px-2 py-1 rounded-full bg-gray-100">${label}</span>
             <button class="btn btn-whats text-xs px-3 py-1" onclick="abrirModalMsg(${c.id})">💬 Enviar</button>
           </div>
@@ -707,7 +606,10 @@ function atualizarListaTodosClientes() {
             <p class="font-semibold">${c.nome} — ${c.cidade} ${temFoto}</p>
             <p class="text-sm">Tel: ${c.telefone} • Nota: ${c.nota || '—'} • R$ ${formatarDinheiro(c.valor)} • Venc: ${formatarData(c.vencimento)}</p>
           </div>
-          <span class="text-xs px-3 py-1 rounded-full ${c.status === 'pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${st}</span>
+          <div class="flex gap-2 items-center">
+            <span class="text-xs px-3 py-1 rounded-full ${c.status === 'pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${st}</span>
+            <a href="https://wa.me/55${limparTelefone(c.telefone)}" target="_blank" class="btn btn-whats text-xs px-2 py-1">💬</a>
+          </div>
         </div>
       `;
     }).join('');
@@ -739,14 +641,10 @@ function mostrarAba(nome) {
 }
 
 function novoCliente() {
-  ['fNome', 'fTel', 'fCidade', 'fValor', 'fData', 'fNota'].forEach(id => {
-    const el = document.getElementById(id);
-    el.value = '';
-    el.classList.remove('campo-preenchido');
-  });
+  ['fNome', 'fTel', 'fCidade', 'fValor', 'fData', 'fNota'].forEach(id => document.getElementById(id).value = '');
   fotoBase64 = null;
   document.getElementById('previaFoto').style.display = 'none';
-  document.getElementById('areaUpload').classList.remove('leitura');
+  document.getElementById('areaUpload').classList.remove('ativo');
   document.getElementById('fotoNota').value = '';
 }
 
@@ -754,7 +652,8 @@ function salvarCliente() {
   const nome = document.getElementById('fNome').value.trim();
   const telefone = document.getElementById('fTel').value.trim();
   const cidade = document.getElementById('fCidade').value.trim();
-  const valor = parseFloat(document.getElementById('fValor').value.replace(',', '.'));
+  const valorStr = document.getElementById('fValor').value;
+  const valor = parseFloat(valorStr.replace(',', '.'));
   const vencimento = document.getElementById('fData').value;
   const nota = document.getElementById('fNota').value.trim();
 
@@ -779,12 +678,13 @@ function salvarCliente() {
   clientes.push(novo);
   salvarDados();
   novoCliente();
-  alert('✅ Cliente salvo com sucesso!' + (fotoBase64 ? '\n📷 Foto lida e salva automaticamente! 🤖' : ''));
+  alert('✅ Cliente salvo com sucesso!' + (fotoBase64 ? '\n📷 Foto salva!' : ''));
 }
 
 function abrirModalMsg(id) {
   clienteParaMsg = clientes.find(c => c.id === id);
   document.getElementById('modalMsg').style.display = 'flex';
+  document.getElementById('tipoMsg').value = 'hoje';
   atualizarPrevia();
 }
 
@@ -798,4 +698,88 @@ function atualizarPrevia() {
   const tipo = document.getElementById('tipoMsg').value;
   let texto = MODELOS[tipo];
   texto = texto.replaceAll('{{nome}}', clienteParaMsg.nome)
-               .replaceAll('{{nota}}', clienteParaMsg.not
+               .replaceAll('{{nota}}', clienteParaMsg.nota || '—')
+               .replaceAll('{{valor}}', formatarDinheiro(clienteParaMsg.valor))
+               .replaceAll('{{vencimento}}', formatarData(clienteParaMsg.vencimento));
+  document.getElementById('previaMsg').textContent = texto;
+}
+
+// 💬 FUNÇÃO WHATSAPP 100% FUNCIONAL
+function enviarWhatsApp() {
+  if (!clienteParaMsg) return;
+  
+  const tipo = document.getElementById('tipoMsg').value;
+  let texto = MODELOS[tipo];
+  texto = texto.replaceAll('{{nome}}', clienteParaMsg.nome)
+               .replaceAll('{{nota}}', clienteParaMsg.nota || '—')
+               .replaceAll('{{valor}}', formatarDinheiro(clienteParaMsg.valor))
+               .replaceAll('{{vencimento}}', formatarData(clienteParaMsg.vencimento));
+  
+  // Salva no histórico
+  mensagens.unshift({
+    id: Date.now(),
+    nome: clienteParaMsg.nome,
+    telefone: clienteParaMsg.telefone,
+    tipo,
+    texto,
+    data: new Date().toISOString()
+  });
+  localStorage.setItem(STORAGE_MSGS, JSON.stringify(mensagens));
+  atualizarListaMensagens();
+
+  // ✅ LIMPA O NÚMERO E ABRE O WHATSAPP
+  const numeroLimpo = limparTelefone(clienteParaMsg.telefone);
+  const url = https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(texto)};
+  
+  console.log('📱 Abrindo WhatsApp:', url);
+  window.open(url, '_blank');
+  
+  fecharModal();
+}
+
+function enviarPorTipo(tipo) {
+  let alvo = [];
+  if (tipo === 'proximos') alvo = clientes.filter(c => statusVencimento(c.vencimento) === 'proximo' && c.status !== 'pago');
+  else if (tipo === 'hoje') alvo = clientes.filter(c => statusVencimento(c.vencimento) === 'hoje' && c.status !== 'pago');
+  else if (tipo === 'vencidas') alvo = clientes.filter(c => statusVencimento(c.vencimento) === 'vencido' && c.status !== 'pago');
+  
+  if (alvo.length === 0) {
+    alert('Nenhum cliente encontrado para este tipo!');
+    return;
+  }
+  
+  if (confirm(Abrir WhatsApp para ${alvo.length} cliente(s)?\n\nSerá enviado um por vez.)) {
+    alvo.forEach((c, i) => {
+      setTimeout(() => {
+        clienteParaMsg = c;
+        const tipoMsg = tipo === 'proximos' ? '7dias' : tipo === 'hoje' ? 'hoje' : 'vencido';
+        document.getElementById('tipoMsg').value = tipoMsg;
+        atualizarPrevia();
+        enviarWhatsApp();
+      }, i * 3000); // 3 segundos entre cada um
+    });
+  }
+}
+
+function abrirModalPago(id) {
+  clienteParaPago = id;
+  document.getElementById('modalPago').style.display = 'flex';
+}
+
+function fecharModalPago() {
+  document.getElementById('modalPago').style.display = 'none';
+  clienteParaPago = null;
+}
+
+function confirmarPago() {
+  const c = clientes.find(cli => cli.id === clienteParaPago);
+  if (c) {
+    c.status = 'pago';
+    salvarDados();
+  }
+  fecharModalPago();
+}
+
+</script>
+</body>
+</html>
