@@ -1,214 +1,2551 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MJ Representações</title>
-  <style>
-    * {margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif;}
-    body {background:#F2EFE4; padding:15px; max-width:600px; margin:0 auto;}
-    h1 {color:#B8860B; text-align:center; margin-bottom:20px;}
-    .card {background:white; padding:20px; border-radius:12px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
-    input {width:100%; padding:12px; margin:8px 0 15px 0; border:1px solid #ddd; border-radius:8px; font-size:16px;}
-    button {width:100%; padding:14px; border:none; border-radius:8px; font-size:17px; font-weight:bold; cursor:pointer; margin:5px 0;}
-    .btn-salvar {background:#B8860B; color:white;}
-    .btn-salvar:hover {background:#996E00;}
-    .btn-whats {background:#25D366; color:white; margin-top:10px;}
-    .foto-area {border:2px dashed #ccc; border-radius:10px; padding:30px; text-align:center; cursor:pointer; margin-bottom:15px;}
-    .foto-area.cheia {border-color:#B8860B; background:#FFF8DC;}
-    .preview {max-width:100%; max-height:250px; border-radius:8px; margin-top:10px; display:none;}
-    .cliente-item {border-bottom:1px solid #eee; padding:15px 0;}
-    .cliente-item:last-child {border:none;}
-    .status-pago {color:green; font-weight:bold;}
-    .status-vencido {color:red; font-weight:bold;}
-    label {font-weight:bold; color:#333;}
-    .vazio {text-align:center; color:#888; padding:20px;}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f7f3ea">
+<title>MJ Representações</title>
+
+<style>
+:root{
+  --bg:#f7f3ea;
+  --card:#fffdf8;
+  --text:#292722;
+  --muted:#77736b;
+  --line:#e5dfd3;
+  --accent:#817764;
+  --accent-dark:#625949;
+  --green:#5f765c;
+  --red:#a45c55;
+  --yellow:#b08b49;
+  --shadow:0 8px 25px rgba(70,60,45,.08);
+  --radius:18px;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  min-height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  min-height:100vh;
+}
+
+/* =========================
+   LAYOUT
+========================= */
+
+.app{
+  display:flex;
+  min-height:100vh;
+}
+
+.sidebar{
+  width:260px;
+  min-height:100vh;
+  background:#fffdf8;
+  border-right:1px solid var(--line);
+  padding:28px 18px;
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  z-index:20;
+}
+
+.brand{
+  text-align:center;
+  padding:5px 5px 25px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:22px;
+}
+
+.brand-logo{
+  width:120px;
+  height:120px;
+  object-fit:contain;
+  display:block;
+  margin:0 auto 12px;
+}
+
+.brand-name{
+  font-family:Georgia,serif;
+  font-size:19px;
+  letter-spacing:3px;
+  font-weight:600;
+}
+
+.menu{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.menu button{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:var(--text);
+  padding:14px 15px;
+  border-radius:13px;
+  text-align:left;
+  font-size:15px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.menu button:hover,
+.menu button.active{
+  background:#eee8dc;
+}
+
+.menu-icon{
+  display:inline-block;
+  width:28px;
+  font-size:17px;
+}
+
+.main{
+  width:100%;
+  margin-left:260px;
+  min-height:100vh;
+  padding:28px;
+}
+
+.mobile-header{
+  display:none;
+}
+
+/* =========================
+   TOP
+========================= */
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+  margin-bottom:25px;
+}
+
+.page-title{
+  margin:0;
+  font-family:Georgia,serif;
+  font-size:30px;
+  font-weight:500;
+}
+
+.page-subtitle{
+  margin:5px 0 0;
+  color:var(--muted);
+  font-size:14px;
+}
+
+.top-actions{
+  display:flex;
+  gap:10px;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+button,
+input,
+select,
+textarea{
+  font:inherit;
+}
+
+.btn{
+  border:0;
+  border-radius:12px;
+  padding:12px 17px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.btn-primary{
+  background:var(--accent-dark);
+  color:white;
+}
+
+.btn-primary:hover{
+  background:#4e473c;
+}
+
+.btn-light{
+  background:#eee8dc;
+  color:var(--text);
+}
+
+.btn-danger{
+  background:#f1dfdc;
+  color:#814741;
+}
+
+.btn-success{
+  background:#dfe8dc;
+  color:#466042;
+}
+
+.btn-small{
+  padding:8px 11px;
+  font-size:13px;
+}
+
+/* =========================
+   PAGES
+========================= */
+
+.page{
+  display:none;
+}
+
+.page.active{
+  display:block;
+}
+
+/* =========================
+   DASHBOARD
+========================= */
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  margin-bottom:22px;
+}
+
+.stat{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:21px;
+  box-shadow:var(--shadow);
+}
+
+.stat-label{
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:9px;
+}
+
+.stat-value{
+  font-size:28px;
+  font-weight:600;
+}
+
+.stat-note{
+  margin-top:8px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1.5fr 1fr;
+  gap:18px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:21px;
+  box-shadow:var(--shadow);
+}
+
+.card-title{
+  margin:0 0 17px;
+  font-family:Georgia,serif;
+  font-size:20px;
+  font-weight:500;
+}
+
+.empty{
+  padding:35px 15px;
+  text-align:center;
+  color:var(--muted);
+}
+
+/* =========================
+   TABLES / LISTS
+========================= */
+
+.table-wrap{
+  width:100%;
+  overflow:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:650px;
+}
+
+th{
+  text-align:left;
+  padding:12px 10px;
+  font-size:12px;
+  color:var(--muted);
+  border-bottom:1px solid var(--line);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+
+td{
+  padding:14px 10px;
+  border-bottom:1px solid var(--line);
+  font-size:14px;
+}
+
+tr:last-child td{
+  border-bottom:0;
+}
+
+.badge{
+  display:inline-block;
+  padding:6px 9px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:bold;
+}
+
+.badge-pago{
+  background:#dfe8dc;
+  color:#466042;
+}
+
+.badge-pendente{
+  background:#f0e5cf;
+  color:#8b6b31;
+}
+
+.badge-atrasado{
+  background:#f1dfdc;
+  color:#814741;
+}
+
+/* =========================
+   FORMS
+========================= */
+
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
+}
+
+.form-group{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.form-group.full{
+  grid-column:1/-1;
+}
+
+label{
+  font-size:13px;
+  color:var(--muted);
+}
+
+input,
+select,
+textarea{
+  width:100%;
+  border:1px solid var(--line);
+  background:white;
+  border-radius:11px;
+  padding:12px;
+  color:var(--text);
+  outline:none;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:var(--accent);
+}
+
+textarea{
+  min-height:100px;
+  resize:vertical;
+}
+
+.form-actions{
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+  margin-top:18px;
+}
+
+/* =========================
+   SEARCH
+========================= */
+
+.toolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:17px;
+}
+
+.search{
+  max-width:350px;
+}
+
+/* =========================
+   CAMERA / NOTA
+========================= */
+
+.camera-box{
+  border:2px dashed #d8d0c2;
+  border-radius:15px;
+  padding:25px;
+  text-align:center;
+  background:#fbf9f3;
+}
+
+.camera-preview{
+  display:none;
+  max-width:100%;
+  max-height:300px;
+  margin:15px auto 0;
+  border-radius:12px;
+  object-fit:contain;
+}
+
+.camera-buttons{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:10px;
+}
+
+.note-list{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:15px;
+}
+
+.note-card{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+}
+
+.note-image{
+  width:100%;
+  height:170px;
+  object-fit:cover;
+  background:#eee;
+}
+
+.note-info{
+  padding:13px;
+}
+
+.note-info strong{
+  display:block;
+  margin-bottom:5px;
+}
+
+.note-info small{
+  color:var(--muted);
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(30,27,23,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:100;
+}
+
+.modal.show{
+  display:flex;
+}
+
+.modal-content{
+  width:min(650px,100%);
+  max-height:90vh;
+  overflow:auto;
+  background:var(--card);
+  border-radius:20px;
+  padding:24px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+
+.modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.close{
+  width:38px;
+  height:38px;
+  border:0;
+  border-radius:50%;
+  background:#eee8dc;
+  cursor:pointer;
+  font-size:20px;
+}
+
+/* =========================
+   LOGO FALLBACK
+========================= */
+
+.logo-fallback{
+  width:120px;
+  height:120px;
+  border:1px solid #aaa;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:auto;
+  font-family:Georgia,serif;
+  font-size:38px;
+  position:relative;
+  color:#222;
+}
+
+.logo-fallback:after{
+  content:"";
+  position:absolute;
+  width:50px;
+  height:25px;
+  border-bottom:2px solid #777;
+  border-radius:50%;
+  right:-3px;
+  bottom:8px;
+  transform:rotate(-25deg);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:1000px){
+  .stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .note-list{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+@media(max-width:760px){
+
+  .sidebar{
+    display:none;
+  }
+
+  .main{
+    margin-left:0;
+    padding:15px;
+    padding-bottom:90px;
+  }
+
+  .mobile-header{
+    display:flex;
+    position:sticky;
+    top:0;
+    z-index:15;
+    background:rgba(247,243,234,.96);
+    backdrop-filter:blur(8px);
+    margin:-15px -15px 18px;
+    padding:12px 15px;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid var(--line);
+  }
+
+  .mobile-brand{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-family:Georgia,serif;
+  }
+
+  .mobile-brand img{
+    width:42px;
+    height:42px;
+    object-fit:contain;
+  }
+
+  .mobile-menu{
+    border:0;
+    background:#eee8dc;
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    font-size:20px;
+  }
+
+  .topbar{
+    align-items:flex-start;
+  }
+
+  .page-title{
+    font-size:25px;
+  }
+
+  .top-actions{
+    display:none;
+  }
+
+  .stats{
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+  }
+
+  .stat{
+    padding:15px;
+  }
+
+  .stat-value{
+    font-size:22px;
+  }
+
+  .card{
+    padding:16px;
+  }
+
+  .form-grid{
+    grid-template-columns:1fr;
+  }
+
+  .form-group.full{
+    grid-column:auto;
+  }
+
+  .note-list{
+    grid-template-columns:1fr;
+  }
+
+  .toolbar{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .search{
+    max-width:none;
+  }
+
+  .bottom-nav{
+    display:flex !important;
+  }
+}
+
+/* =========================
+   BOTTOM MOBILE NAV
+========================= */
+
+.bottom-nav{
+  display:none;
+  position:fixed;
+  left:10px;
+  right:10px;
+  bottom:10px;
+  z-index:50;
+  background:#fffdf8;
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.12);
+  padding:7px;
+  justify-content:space-around;
+}
+
+.bottom-nav button{
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  padding:8px 10px;
+  border-radius:12px;
+  font-size:11px;
+}
+
+.bottom-nav button.active{
+  background:#eee8dc;
+  color:var(--text);
+}
+
+/* =========================
+   TOAST
+========================= */
+
+.toast{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  background:#302d27;
+  color:white;
+  padding:13px 17px;
+  border-radius:12px;
+  opacity:0;
+  transform:translateY(15px);
+  pointer-events:none;
+  transition:.25s;
+  z-index:200;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translateY(0);
+}
+
+@media(max-width:760px){
+  .toast{
+    bottom:85px;
+    left:15px;
+    right:15px;
+    text-align:center;
+  }
+}
+</style>
 </head>
+
 <body>
 
-<h1>🏪 MJ Representações</h1>
+<div class="app">
 
-<!-- FORMULÁRIO -->
-<div class="card">
-  <h2>📝 Cadastrar Cliente</h2>
-  
-  <!-- ÁREA DA FOTO -->
-  <div class="foto-area" id="fotoArea" onclick="document.getElementById('inputFoto').click()">
-    <p>📷 Clique para escolher a foto da nota</p>
-    <input type="file" id="inputFoto" accept="image/*" style="display:none;" onchange="carregarFoto(event)">
-    <img id="previewFoto" class="preview" alt="Prévia da nota">
+  <!-- =========================
+       MENU DESKTOP
+  ========================== -->
+
+  <aside class="sidebar">
+
+    <div class="brand">
+
+      <!--
+        COLOQUE A LOGO ORIGINAL NESTE ARQUIVO:
+        logo-mj.png
+
+        Deixe logo-mj.png na mesma pasta do index.html.
+      -->
+
+      <img
+        src="logo-mj.png"
+        class="brand-logo"
+        alt="MJ Representações"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+      >
+
+      <div class="logo-fallback" style="display:none;">MJ</div>
+
+      <div class="brand-name">REPRESENTAÇÕES</div>
+
+    </div>
+
+    <nav class="menu">
+
+      <button class="active" data-page="dashboard">
+        <span class="menu-icon">⌂</span>
+        Dashboard
+      </button>
+
+      <button data-page="clientes">
+        <span class="menu-icon">♙</span>
+        Clientes
+      </button>
+
+      <button data-page="cobrancas">
+        <span class="menu-icon">R$</span>
+        Cobranças
+      </button>
+
+      <button data-page="notas">
+        <span class="menu-icon">▣</span>
+        Notas / Fotos
+      </button>
+
+      <button data-page="novo-cliente">
+        <span class="menu-icon">＋</span>
+        Novo cliente
+      </button>
+
+    </nav>
+
+  </aside>
+
+  <!-- =========================
+       CONTEÚDO
+  ========================== -->
+
+  <main class="main">
+
+    <header class="mobile-header">
+
+      <div class="mobile-brand">
+
+        <img
+          src="logo-mj.png"
+          alt="MJ"
+          onerror="this.style.display='none'"
+        >
+
+        <strong>MJ Representações</strong>
+
+      </div>
+
+      <button class="mobile-menu" onclick="toggleMobileMenu()">☰</button>
+
+    </header>
+
+    <!-- DASHBOARD -->
+
+    <section class="page active" id="page-dashboard">
+
+      <div class="topbar">
+
+        <div>
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-subtitle">
+            Controle de clientes, cobranças e notas.
+          </p>
+        </div>
+
+        <div class="top-actions">
+          <button class="btn btn-primary" onclick="showPage('novo-cliente')">
+            + Novo cliente
+          </button>
+
+          <button class="btn btn-light" onclick="showPage('notas')">
+            📷 Tirar foto
+          </button>
+        </div>
+
+      </div>
+
+      <div class="stats">
+
+        <div class="stat">
+          <div class="stat-label">Clientes</div>
+          <div class="stat-value" id="totalClientes">0</div>
+          <div class="stat-note">cadastrados</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">Cobranças pendentes</div>
+          <div class="stat-value" id="totalPendentes">0</div>
+          <div class="stat-note">aguardando pagamento</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">Em atraso</div>
+          <div class="stat-value" id="totalAtrasados">0</div>
+          <div class="stat-note">cobranças vencidas</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">Valor pendente</div>
+          <div class="stat-value" id="valorPendente">R$ 0,00</div>
+          <div class="stat-note">total a receber</div>
+        </div>
+
+      </div>
+
+      <div class="grid">
+
+        <div class="card">
+
+          <h2 class="card-title">Últimas cobranças</h2>
+
+          <div id="dashboardCobrancas"></div>
+
+        </div>
+
+        <div class="card">
+
+          <h2 class="card-title">Acesso rápido</h2>
+
+          <div style="display:grid;gap:10px;">
+
+            <button
+              class="btn btn-light"
+              onclick="showPage('novo-cliente')"
+            >
+              👤 Cadastrar cliente
+            </button>
+
+            <button
+              class="btn btn-light"
+              onclick="abrirNovaCobranca()"
+            >
+              💰 Nova cobrança
+            </button>
+
+            <button
+              class="btn btn-light"
+              onclick="showPage('notas')"
+            >
+              📷 Fotografar nota
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- CLIENTES -->
+
+    <section class="page" id="page-clientes">
+
+      <div class="topbar">
+
+        <div>
+          <h1 class="page-title">Clientes</h1>
+          <p class="page-subtitle">Seus clientes cadastrados.</p>
+        </div>
+
+        <button
+          class="btn btn-primary"
+          onclick="showPage('novo-cliente')"
+        >
+          + Novo cliente
+        </button>
+
+      </div>
+
+      <div class="card">
+
+        <div class="toolbar">
+
+          <input
+            class="search"
+            id="buscarCliente"
+            placeholder="Pesquisar cliente..."
+            oninput="renderClientes()"
+          >
+
+        </div>
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Telefone</th>
+                <th>Cidade</th>
+                <th>Observação</th>
+                <th></th>
+              </tr>
+            </thead>
+
+            <tbody id="clientesTabela"></tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- NOVO CLIENTE -->
+
+    <section class="page" id="page-novo-cliente">
+
+      <div class="topbar">
+
+        <div>
+          <h1 class="page-title">Novo cliente</h1>
+          <p class="page-subtitle">
+            Cadastre um novo cliente.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <form id="clienteForm">
+
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label>Nome do cliente *</label>
+              <input id="clienteNome" required>
+            </div>
+
+            <div class="form-group">
+              <label>Telefone</label>
+              <input id="clienteTelefone" type="tel">
+            </div>
+
+            <div class="form-group">
+              <label>Cidade</label>
+              <input id="clienteCidade">
+            </div>
+
+            <div class="form-group">
+              <label>Documento</label>
+              <input id="clienteDocumento">
+            </div>
+
+            <div class="form-group full">
+              <label>Observações</label>
+              <textarea id="clienteObs"></textarea>
+            </div>
+
+          </div>
+
+          <div class="form-actions">
+
+            <button
+              type="button"
+              class="btn btn-light"
+              onclick="showPage('clientes')"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+            >
+              Salvar cliente
+            </button>
+
+          </div>
+
+        </form>
+
+      </div>
+
+    </section>
+
+
+    <!-- COBRANÇAS -->
+
+    <section class="page" id="page-cobrancas">
+
+      <div class="topbar">
+
+        <div>
+          <h1 class="page-title">Cobranças</h1>
+          <p class="page-subtitle">
+            Controle dos valores a receber.
+          </p>
+        </div>
+
+        <button
+          class="btn btn-primary"
+          onclick="abrirNovaCobranca()"
+        >
+          + Nova cobrança
+        </button>
+
+      </div>
+
+      <div class="card">
+
+        <div class="toolbar">
+
+          <input
+            class="search"
+            id="buscarCobranca"
+            placeholder="Pesquisar cobrança..."
+            oninput="renderCobrancas()"
+          >
+
+          <select
+            id="filtroCobranca"
+            onchange="renderCobrancas()"
+            style="max-width:190px;"
+          >
+            <option value="">Todas</option>
+            <option value="pendente">Pendentes</option>
+            <option value="pago">Pagas</option>
+            <option value="atrasado">Atrasadas</option>
+          </select>
+
+        </div>
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+
+              <tr>
+                <th>Cliente</th>
+                <th>Descrição</th>
+                <th>Vencimento</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+
+            </thead>
+
+            <tbody id="cobrancasTabela"></tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- NOTAS -->
+
+    <section class="page" id="page-notas">
+
+      <div class="topbar">
+
+        <div>
+
+          <h1 class="page-title">Notas / Fotos</h1>
+
+          <p class="page-subtitle">
+            Fotografe e guarde as notas dos clientes.
+          </p>
+
+        </div>
+
+      </div>
+
+      <div class="card" style="margin-bottom:18px;">
+
+        <div class="camera-box">
+
+          <div style="font-size:38px;margin-bottom:10px;">📷</div>
+
+          <h3 style="margin:5px 0;">
+            Fotografar nota
+          </h3>
+
+          <p style="color:var(--muted);font-size:13px;">
+            Use a câmera do celular ou escolha uma foto da galeria.
+          </p>
+
+          <div class="camera-buttons">
+
+            <label class="btn btn-primary">
+
+              📷 Tirar foto
+
+              <input
+                id="cameraInput"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                hidden
+              >
+
+            </label>
+
+            <label class="btn btn-light">
+
+              🖼️ Galeria
+
+              <input
+                id="galleryInput"
+                type="file"
+                accept="image/*"
+                hidden
+              >
+
+            </label>
+
+          </div>
+
+          <img
+            id="cameraPreview"
+            class="camera-preview"
+            alt="Prévia da nota"
+          >
+
+          <div
+            id="photoActions"
+            style="display:none;margin-top:15px;"
+          >
+
+            <div class="form-group" style="max-width:400px;margin:auto;">
+
+              <label>Cliente da nota</label>
+
+              <select id="notaCliente"></select>
+
+            </div>
+
+            <div style="margin-top:12px;">
+
+              <button
+                class="btn btn-primary"
+                onclick="salvarNota()"
+              >
+                Salvar foto
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <h2 class="card-title">Notas salvas</h2>
+
+        <div id="notasLista" class="note-list"></div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+
+<!-- MENU MOBILE -->
+
+<nav class="bottom-nav" id="bottomNav">
+
+  <button
+    class="active"
+    data-page="dashboard"
+    onclick="showPage('dashboard')"
+  >
+    🏠<br>Início
+  </button>
+
+  <button
+    data-page="clientes"
+    onclick="showPage('clientes')"
+  >
+    👤<br>Clientes
+  </button>
+
+  <button
+    data-page="cobrancas"
+    onclick="showPage('cobrancas')"
+  >
+    💰<br>Cobrar
+  </button>
+
+  <button
+    data-page="notas"
+    onclick="showPage('notas')"
+  >
+    📷<br>Notas
+  </button>
+
+</nav>
+
+
+<!-- MODAL COBRANÇA -->
+
+<div class="modal" id="cobrancaModal">
+
+  <div class="modal-content">
+
+    <div class="modal-header">
+
+      <h2 class="card-title" style="margin:0;">
+        Nova cobrança
+      </h2>
+
+      <button
+        class="close"
+        onclick="fecharModal()"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <form id="cobrancaForm">
+
+      <div class="form-grid">
+
+        <div class="form-group full">
+
+          <label>Cliente *</label>
+
+          <select id="cobrancaCliente" required></select>
+
+        </div>
+
+        <div class="form-group">
+
+          <label>Descrição *</label>
+
+          <input
+            id="cobrancaDescricao"
+            placeholder="Ex.: Pedido de mercadoria"
+            required
+          >
+
+        </div>
+
+        <div class="form-group">
+
+          <label>Valor *</label>
+
+          <input
+            id="cobrancaValor"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0,00"
+            required
+          >
+
+        </div>
+
+        <div class="form-group">
+
+          <label>Vencimento *</label>
+
+          <input
+            id="cobrancaVencimento"
+            type="date"
+            required
+          >
+
+        </div>
+
+        <div class="form-group">
+
+          <label>Status</label>
+
+          <select id="cobrancaStatus">
+
+            <option value="pendente">
+              Pendente
+            </option>
+
+            <option value="pago">
+              Pago
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="form-group full">
+
+          <label>Observações</label>
+
+          <textarea id="cobrancaObs"></textarea>
+
+        </div>
+
+      </div>
+
+      <div class="form-actions">
+
+        <button
+          type="button"
+          class="btn btn-light"
+          onclick="fecharModal()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="btn btn-primary"
+        >
+          Salvar cobrança
+        </button>
+
+      </div>
+
+    </form>
+
   </div>
 
-  <label>Nome *</label>
-  <input type="text" id="nome" placeholder="Nome do cliente">
-
-  <label>Telefone (WhatsApp) *</label>
-  <input type="tel" id="telefone" placeholder="(31) 99999-9999">
-
-  <label>Cidade *</label>
-  <input type="text" id="cidade" placeholder="Cidade">
-
-  <label>Valor R$ *</label>
-  <input type="text" id="valor" placeholder="0,00">
-
-  <label>Vencimento *</label>
-  <input type="date" id="vencimento">
-
-  <label>Nº Nota</label>
-  <input type="text" id="nota" placeholder="Número da nota">
-
-  <button class="btn-salvar" onclick="salvarCliente()">✅ SALVAR CLIENTE</button>
 </div>
 
-<!-- LISTA DE CLIENTES -->
-<div class="card">
-  <h2>📋 Clientes Cadastrados</h2>
-  <div id="listaClientes"></div>
-</div>
+
+<div class="toast" id="toast"></div>
+
 
 <script>
-let clientes = [];
-let fotoBase64 = null;
 
-// Carregar dados ao abrir
-window.onload = function() {
-  carregarDados();
-  atualizarLista();
-};
+/* ============================================================
+   BANCO LOCAL
+   Os dados ficam salvos neste navegador através do localStorage.
+   ============================================================ */
 
-// 📷 Carregar foto
-function carregarFoto(event) {
-  const arquivo = event.target.files[0];
-  if (!arquivo) return;
+let clientes = JSON.parse(
+  localStorage.getItem("mj_clientes") || "[]"
+);
 
-  const leitor = new FileReader();
-  leitor.onload = function(e) {
-    fotoBase64 = e.target.result;
-    const preview = document.getElementById('previewFoto');
-    preview.src = fotoBase64;
-    preview.style.display = 'block';
-    document.getElementById('fotoArea').classList.add('cheia');
-    document.getElementById('fotoArea').innerHTML = '<p>✅ Foto carregada!</p><img id="previewFoto" class="preview" src="'+fotoBase64+'" alt="Prévia">';
-  };
-  leitor.readAsDataURL(arquivo);
+let cobrancas = JSON.parse(
+  localStorage.getItem("mj_cobrancas") || "[]"
+);
+
+let notas = JSON.parse(
+  localStorage.getItem("mj_notas") || "[]"
+);
+
+let fotoAtual = null;
+
+
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+
+function salvarBanco(){
+
+  localStorage.setItem(
+    "mj_clientes",
+    JSON.stringify(clientes)
+  );
+
+  localStorage.setItem(
+    "mj_cobrancas",
+    JSON.stringify(cobrancas)
+  );
+
+  localStorage.setItem(
+    "mj_notas",
+    JSON.stringify(notas)
+  );
+
 }
 
-// 💾 Salvar cliente
-function salvarCliente() {
-  const nome = document.getElementById('nome').value.trim();
-  const telefone = document.getElementById('telefone').value.trim();
-  const cidade = document.getElementById('cidade').value.trim();
-  const valor = document.getElementById('valor').value.trim();
-  const vencimento = document.getElementById('vencimento').value;
-  const nota = document.getElementById('nota').value.trim();
 
-  if (!nome || !telefone || !cidade || !valor || !vencimento) {
-    alert('⚠️ Preencha TODOS os campos obrigatórios!');
+function dinheiro(valor){
+
+  return Number(valor || 0).toLocaleString(
+    "pt-BR",
+    {
+      style:"currency",
+      currency:"BRL"
+    }
+  );
+
+}
+
+
+function escapeHTML(text){
+
+  return String(text || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+function gerarId(){
+
+  return Date.now() + Math.random()
+    .toString(16)
+    .slice(2);
+
+}
+
+
+function mostrarToast(texto){
+
+  const toast = document.getElementById("toast");
+
+  toast.textContent = texto;
+
+  toast.classList.add("show");
+
+  setTimeout(
+    () => toast.classList.remove("show"),
+    2500
+  );
+
+}
+
+
+function nomeCliente(id){
+
+  const cliente = clientes.find(
+    c => String(c.id) === String(id)
+  );
+
+  return cliente
+    ? cliente.nome
+    : "Cliente removido";
+
+}
+
+
+/* ============================================================
+   NAVEGAÇÃO
+   ============================================================ */
+
+function showPage(page){
+
+  document
+    .querySelectorAll(".page")
+    .forEach(p => p.classList.remove("active"));
+
+  const destino =
+    document.getElementById("page-" + page);
+
+  if(destino){
+    destino.classList.add("active");
+  }
+
+  document
+    .querySelectorAll(".menu button[data-page]")
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.page === page
+      );
+
+    });
+
+  document
+    .querySelectorAll(".bottom-nav button[data-page]")
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.page === page
+      );
+
+    });
+
+  if(page === "dashboard"){
+    renderDashboard();
+  }
+
+  if(page === "clientes"){
+    renderClientes();
+  }
+
+  if(page === "cobrancas"){
+    renderCobrancas();
+  }
+
+  if(page === "notas"){
+    renderNotas();
+    preencherClientesSelect("notaCliente");
+  }
+
+  if(page === "novo-cliente"){
+    document.getElementById("clienteNome").focus();
+  }
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+
+}
+
+
+function toggleMobileMenu(){
+
+  const nav = document.getElementById("bottomNav");
+
+  nav.style.display =
+    nav.style.display === "flex"
+      ? ""
+      : "flex";
+
+}
+
+
+/* ============================================================
+   CLIENTES
+   ============================================================ */
+
+document
+  .getElementById("clienteForm")
+  .addEventListener("submit",function(e){
+
+    e.preventDefault();
+
+    const cliente = {
+
+      id:gerarId(),
+
+      nome:
+        document.getElementById("clienteNome").value.trim(),
+
+      telefone:
+        document.getElementById("clienteTelefone").value.trim(),
+
+      cidade:
+        document.getElementById("clienteCidade").value.trim(),
+
+      documento:
+        document.getElementById("clienteDocumento").value.trim(),
+
+      obs:
+        document.getElementById("clienteObs").value.trim(),
+
+      criadoEm:new Date().toISOString()
+
+    };
+
+    clientes.push(cliente);
+
+    salvarBanco();
+
+    this.reset();
+
+    atualizarTudo();
+
+    mostrarToast("Cliente cadastrado com sucesso.");
+
+    showPage("clientes");
+
+  });
+
+
+function renderClientes(){
+
+  const tbody =
+    document.getElementById("clientesTabela");
+
+  const busca =
+    (
+      document.getElementById("buscarCliente")?.value
+      || ""
+    ).toLowerCase();
+
+  const lista = clientes.filter(cliente => {
+
+    return (
+
+      cliente.nome.toLowerCase().includes(busca) ||
+
+      (cliente.telefone || "")
+        .toLowerCase()
+        .includes(busca) ||
+
+      (cliente.cidade || "")
+        .toLowerCase()
+        .includes(busca)
+
+    );
+
+  });
+
+  if(!lista.length){
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          <div class="empty">
+            Nenhum cliente cadastrado.
+          </div>
+        </td>
+      </tr>
+    `;
+
     return;
   }
 
-  const cliente = {
-    id: Date.now(),
-    nome,
-    telefone,
-    cidade,
-    valor,
-    vencimento,
-    nota,
-    foto: fotoBase64,
-    pago: false
-  };
+  tbody.innerHTML = lista.map(cliente => `
 
-  clientes.unshift(cliente);
-  salvarDados();
-  atualizarLista();
-  limparFormulario();
-  alert('✅ Cliente SALVO com sucesso!');
+    <tr>
+
+      <td>
+        <strong>${escapeHTML(cliente.nome)}</strong>
+      </td>
+
+      <td>
+        ${escapeHTML(cliente.telefone || "-")}
+      </td>
+
+      <td>
+        ${escapeHTML(cliente.cidade || "-")}
+      </td>
+
+      <td>
+        ${escapeHTML(cliente.obs || "-")}
+      </td>
+
+      <td>
+
+        <button
+          class="btn btn-danger btn-small"
+          onclick="excluirCliente('${cliente.id}')"
+        >
+          Excluir
+        </button>
+
+      </td>
+
+    </tr>
+
+  `).join("");
+
 }
 
-// 📋 Atualizar lista
-function atualizarLista() {
-  const lista = document.getElementById('listaClientes');
-  
-  if (clientes.length === 0) {
-    lista.innerHTML = '<p class="vazio">Nenhum cliente cadastrado ainda.</p>';
+
+function excluirCliente(id){
+
+  const cliente = clientes.find(
+    c => String(c.id) === String(id)
+  );
+
+  if(!cliente) return;
+
+  if(!confirm(
+    "Excluir o cliente " +
+    cliente.nome +
+    "?"
+  )){
     return;
   }
 
-  lista.innerHTML = clientes.map(c => {
-    const hoje = new Date();
-    hoje.setHours(0,0,0,0);
-    const vencto = new Date(c.vencimento + 'T00:00:00');
-    const dias = Math.ceil((vencto - hoje) / (1000*60*60*24));
-    let status = '';
-    if (c.pago) status = '<span class="status-pago">✅ PAGO</span>';
-    else if (dias < 0) status = '<span class="status-vencido">⚠️ VENCIDO</span>';
-    else if (dias === 0) status = '<span style="color:orange; font-weight:bold;">📅 VENCE HOJE</span>';
-    else status = <span style="color:#B8860B;">⏰ ${dias} dias</span>;
+  clientes =
+    clientes.filter(
+      c => String(c.id) !== String(id)
+    );
 
-    const telLimpo = c.telefone.replace(/\D/g, '');
-    const temFoto = c.foto ? '📷' : '';
+  salvarBanco();
 
-    return `
-      <div class="cliente-item">
-        <h3>${c.nome} ${temFoto} ${status}</h3>
-        <p>📞 ${c.telefone}</p>
-        <p>📍 ${c.cidade}</p>
-        <p>💰 R$ ${c.valor} • Venc: ${formatarData(c.vencimento)}</p>
-        ${c.nota ? <p>📄 Nota: ${c.nota}</p> : ''}
-        ${c.foto ? <img src="${c.foto}" style="max-width:100%; max-height:150px; border-radius:8px; margin-top:8px;"> : ''}
-        <div style="display:flex; gap:8px; margin-top:10px;">
-          <a href="https://wa.me/55${telLimpo}" target="_blank" style="flex:1; padding:10px; background:#25D366; color:white; text-align:center; border-radius:8px; text-decoration:none; font-weight:bold;">💬 WhatsApp</a>
-          ${!c.pago ? <button onclick="marcarPago(${c.id})" style="flex:1; padding:10px; background:#2F855A; color:white; border-radius:8px; font-weight:bold;">✓ Pago</button> : ''}
+  atualizarTudo();
+
+  mostrarToast("Cliente excluído.");
+
+}
+
+
+/* ============================================================
+   COBRANÇAS
+   ============================================================ */
+
+function abrirNovaCobranca(){
+
+  if(!clientes.length){
+
+    alert(
+      "Cadastre pelo menos um cliente antes de criar uma cobrança."
+    );
+
+    showPage("novo-cliente");
+
+    return;
+  }
+
+  preencherClientesSelect("cobrancaCliente");
+
+  document
+    .getElementById("cobrancaForm")
+    .reset();
+
+  document
+    .getElementById("cobrancaModal")
+    .classList.add("show");
+
+}
+
+
+function fecharModal(){
+
+  document
+    .getElementById("cobrancaModal")
+    .classList.remove("show");
+
+}
+
+
+function preencherClientesSelect(id){
+
+  const select =
+    document.getElementById(id);
+
+  if(!select) return;
+
+  select.innerHTML = "";
+
+  if(!clientes.length){
+
+    select.innerHTML =
+      `<option value="">Nenhum cliente cadastrado</option>`;
+
+    return;
+  }
+
+  select.innerHTML = `
+
+    <option value="">
+      Selecione um cliente
+    </option>
+
+    ${clientes.map(cliente => `
+
+      <option value="${cliente.id}">
+        ${escapeHTML(cliente.nome)}
+      </option>
+
+    `).join("")}
+
+  `;
+
+}
+
+
+document
+  .getElementById("cobrancaForm")
+  .addEventListener("submit",function(e){
+
+    e.preventDefault();
+
+    const cobranca = {
+
+      id:gerarId(),
+
+      clienteId:
+        document.getElementById(
+          "cobrancaCliente"
+        ).value,
+
+      descricao:
+        document.getElementById(
+          "cobrancaDescricao"
+        ).value.trim(),
+
+      valor:
+        Number(
+          document.getElementById(
+            "cobrancaValor"
+          ).value
+        ),
+
+      vencimento:
+        document.getElementById(
+          "cobrancaVencimento"
+        ).value,
+
+      status:
+        document.getElementById(
+          "cobrancaStatus"
+        ).value,
+
+      obs:
+        document.getElementById(
+          "cobrancaObs"
+        ).value.trim(),
+
+      criadoEm:new Date().toISOString()
+
+    };
+
+    cobrancas.push(cobranca);
+
+    salvarBanco();
+
+    fecharModal();
+
+    atualizarTudo();
+
+    mostrarToast("Cobrança cadastrada.");
+
+  });
+
+
+function calcularStatus(cobranca){
+
+  if(cobranca.status === "pago"){
+    return "pago";
+  }
+
+  if(
+    cobranca.vencimento &&
+    new Date(
+      cobranca.vencimento + "T23:59:59"
+    ) < new Date()
+  ){
+    return "atrasado";
+  }
+
+  return "pendente";
+
+}
+
+
+function renderCobrancas(){
+
+  const tbody =
+    document.getElementById(
+      "cobrancasTabela"
+    );
+
+  const busca =
+    (
+      document.getElementById(
+        "buscarCobranca"
+      )?.value || ""
+    ).toLowerCase();
+
+  const filtro =
+    document.getElementById(
+      "filtroCobranca"
+    )?.value || "";
+
+  const lista =
+    cobrancas.filter(cobranca => {
+
+      const status =
+        calcularStatus(cobranca);
+
+      const nome =
+        nomeCliente(cobranca.clienteId);
+
+      const texto =
+        (
+          nome + " " +
+          cobranca.descricao
+        ).toLowerCase();
+
+      return (
+
+        texto.includes(busca) &&
+
+        (
+          !filtro ||
+          filtro === status
+        )
+
+      );
+
+    });
+
+  if(!lista.length){
+
+    tbody.innerHTML = `
+
+      <tr>
+
+        <td colspan="6">
+
+          <div class="empty">
+            Nenhuma cobrança encontrada.
+          </div>
+
+        </td>
+
+      </tr>
+
+    `;
+
+    return;
+  }
+
+  tbody.innerHTML =
+    lista
+      .slice()
+      .reverse()
+      .map(cobranca => {
+
+        const status =
+          calcularStatus(cobranca);
+
+        const statusTexto = {
+
+          pago:"Pago",
+
+          pendente:"Pendente",
+
+          atrasado:"Atrasado"
+
+        }[status];
+
+        return `
+
+          <tr>
+
+            <td>
+              <strong>
+                ${escapeHTML(
+                  nomeCliente(
+                    cobranca.clienteId
+                  )
+                )}
+              </strong>
+            </td>
+
+            <td>
+              ${escapeHTML(
+                cobranca.descricao
+              )}
+            </td>
+
+            <td>
+              ${formatarData(
+                cobranca.vencimento
+              )}
+            </td>
+
+            <td>
+              <strong>
+                ${dinheiro(cobranca.valor)}
+              </strong>
+            </td>
+
+            <td>
+
+              <span
+                class="badge badge-${status}"
+              >
+                ${statusTexto}
+              </span>
+
+            </td>
+
+            <td>
+
+              ${
+                status !== "pago"
+                ? `
+                  <button
+                    class="btn btn-success btn-small"
+                    onclick="marcarPago('${cobranca.id}')"
+                  >
+                    Pagar
+                  </button>
+                `
+                : ""
+              }
+
+              <button
+                class="btn btn-danger btn-small"
+                onclick="excluirCobranca('${cobranca.id}')"
+              >
+                ×
+              </button>
+
+            </td>
+
+          </tr>
+
+        `;
+
+      })
+      .join("");
+
+}
+
+
+function marcarPago(id){
+
+  const cobranca =
+    cobrancas.find(
+      c => String(c.id) === String(id)
+    );
+
+  if(!cobranca) return;
+
+  cobranca.status = "pago";
+
+  cobranca.pagoEm =
+    new Date().toISOString();
+
+  salvarBanco();
+
+  atualizarTudo();
+
+  mostrarToast("Cobrança marcada como paga.");
+
+}
+
+
+function excluirCobranca(id){
+
+  if(!confirm("Excluir esta cobrança?")){
+    return;
+  }
+
+  cobrancas =
+    cobrancas.filter(
+      c => String(c.id) !== String(id)
+    );
+
+  salvarBanco();
+
+  atualizarTudo();
+
+  mostrarToast("Cobrança excluída.");
+
+}
+
+
+function formatarData(data){
+
+  if(!data) return "-";
+
+  const partes =
+    data.split("-");
+
+  if(partes.length !== 3){
+    return data;
+  }
+
+  return (
+    partes[2] + "/" +
+    partes[1] + "/" +
+    partes[0]
+  );
+
+}
+
+
+/* ============================================================
+   NOTAS / FOTOS
+   ============================================================ */
+
+document
+  .getElementById("cameraInput")
+  .addEventListener(
+    "change",
+    processarFoto
+  );
+
+
+document
+  .getElementById("galleryInput")
+  .addEventListener(
+    "change",
+    processarFoto
+  );
+
+
+function processarFoto(event){
+
+  const file =
+    event.target.files[0];
+
+  if(!file) return;
+
+  const reader =
+    new FileReader();
+
+  reader.onload = function(e){
+
+    fotoAtual =
+      e.target.result;
+
+    const preview =
+      document.getElementById(
+        "cameraPreview"
+      );
+
+    preview.src =
+      fotoAtual;
+
+    preview.style.display =
+      "block";
+
+    document.getElementById(
+      "photoActions"
+    ).style.display =
+      "block";
+
+    preencherClientesSelect(
+      "notaCliente"
+    );
+
+  };
+
+  reader.readAsDataURL(file);
+
+}
+
+
+function salvarNota(){
+
+  if(!fotoAtual){
+
+    alert("Selecione ou tire uma foto primeiro.");
+
+    return;
+  }
+
+  const clienteId =
+    document.getElementById(
+      "notaCliente"
+    ).value;
+
+  const nota = {
+
+    id:gerarId(),
+
+    clienteId:
+
+      clienteId || null,
+
+    imagem:
+      fotoAtual,
+
+    data:
+      new Date().toISOString()
+
+  };
+
+  notas.push(nota);
+
+  salvarBanco();
+
+  fotoAtual = null;
+
+  document.getElementById(
+    "cameraPreview"
+  ).style.display =
+    "none";
+
+  document.getElementById(
+    "photoActions"
+  ).style.display =
+    "none";
+
+  document.getElementById(
+    "cameraInput"
+  ).value = "";
+
+  document.getElementById(
+    "galleryInput"
+  ).value = "";
+
+  renderNotas();
+
+  mostrarToast("Foto da nota salva.");
+
+}
+
+
+function renderNotas(){
+
+  const container =
+    document.getElementById(
+      "notasLista"
+    );
+
+  if(!notas.length){
+
+    container.innerHTML = `
+
+      <div
+        class="empty"
+        style="grid-column:1/-1;"
+      >
+        Nenhuma nota fotografada ainda.
+      </div>
+
+    `;
+
+    return;
+  }
+
+  container.innerHTML =
+    notas
+      .slice()
+      .reverse()
+      .map(nota => `
+
+        <div class="note-card">
+
+          <img
+            class="note-image"
+            src="${nota.imagem}"
+            alt="Foto da nota"
+          >
+
+          <div class="note-info">
+
+            <strong>
+              ${escapeHTML(
+                nota.clienteId
+                  ? nomeCliente(nota.clienteId)
+                  : "Sem cliente"
+              )}
+            </strong>
+
+            <small>
+              ${new Date(
+                nota.data
+              ).toLocaleString(
+                "pt-BR"
+              )}
+            </small>
+
+            <div style="margin-top:10px;">
+
+              <button
+                class="btn btn-danger btn-small"
+                onclick="excluirNota('${nota.id}')"
+              >
+                Excluir
+              </button>
+
+            </div>
+
+          </div>
+
         </div>
+
+      `)
+      .join("");
+
+}
+
+
+function excluirNota(id){
+
+  if(!confirm("Excluir esta foto?")){
+    return;
+  }
+
+  notas =
+    notas.filter(
+      nota =>
+        String(nota.id) !== String(id)
+    );
+
+  salvarBanco();
+
+  renderNotas();
+
+  mostrarToast("Foto excluída.");
+
+}
+
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+
+function renderDashboard(){
+
+  document.getElementById(
+    "totalClientes"
+  ).textContent =
+    clientes.length;
+
+  const pendentes =
+    cobrancas.filter(
+      c => calcularStatus(c) === "pendente"
+    );
+
+  const atrasados =
+    cobrancas.filter(
+      c => calcularStatus(c) === "atrasado"
+    );
+
+  document.getElementById(
+    "totalPendentes"
+  ).textContent =
+    pendentes.length;
+
+  document.getElementById(
+    "totalAtrasados"
+  ).textContent =
+    atrasados.length;
+
+  const valor =
+    cobrancas
+      .filter(
+        c =>
+          calcularStatus(c) !== "pago"
+      )
+      .reduce(
+        (total,c) =>
+          total + Number(c.valor || 0),
+        0
+      );
+
+  document.getElementById(
+    "valorPendente"
+  ).textContent =
+    dinheiro(valor);
+
+  const container =
+    document.getElementById(
+      "dashboardCobrancas"
+    );
+
+  const ultimas =
+    cobrancas
+      .slice()
+      .reverse()
+      .slice(0,6);
+
+  if(!ultimas.length){
+
+    container.innerHTML = `
+      <div class="empty">
+        Nenhuma cobrança cadastrada.
       </div>
     `;
-  }).join('');
-}
 
-// 📅 Formatar data
-function formatarData(data) {
-  if (!data) return '';
-  const [ano, mes, dia] = data.split('-');
-  return ${dia}/${mes}/${ano};
-}
-
-// ✅ Marcar como pago
-function marcarPago(id) {
-  if (!confirm('Marcar como PAGO?')) return;
-  const cli = clientes.find(c => c.id === id);
-  if (cli) {
-    cli.pago = true;
-    salvarDados();
-    atualizarLista();
+    return;
   }
+
+  container.innerHTML = `
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Cliente</th>
+            <th>Vencimento</th>
+            <th>Valor</th>
+            <th>Status</th>
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          ${ultimas.map(cobranca => {
+
+            const status =
+              calcularStatus(cobranca);
+
+            return `
+
+              <tr>
+
+                <td>
+                  ${escapeHTML(
+                    nomeCliente(
+                      cobranca.clienteId
+                    )
+                  )}
+                </td>
+
+                <td>
+                  ${formatarData(
+                    cobranca.vencimento
+                  )}
+                </td>
+
+                <td>
+                  ${dinheiro(
+                    cobranca.valor
+                  )}
+                </td>
+
+                <td>
+                  <span
+                    class="badge badge-${status}"
+                  >
+                    ${
+                      status === "pago"
+                        ? "Pago"
+                        : status === "atrasado"
+                          ? "Atrasado"
+                          : "Pendente"
+                    }
+                  </span>
+                </td>
+
+              </tr>
+
+            `;
+
+          }).join("")}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
 }
 
-// 🧹 Limpar formulário
-function limparFormulario() {
-  document.getElementById('nome').value = '';
-  document.getElementById('telefone').value = '';
-  document.getElementById('cidade').value = '';
-  document.getElementById('valor').value = '';
-  document.getElementById('vencimento').value = '';
-  document.getElementById('nota').value = '';
-  fotoBase64 = null;
-  document.getElementById('previewFoto').style.display = 'none';
-  document.getElementById('fotoArea').classList.remove('cheia');
-  document.getElementById('fotoArea').innerHTML = '<p>📷 Clique para escolher a foto da nota</p><input type="file" id="inputFoto" accept="image/*" style="display:none;" onchange="carregarFoto(event)">';
+
+/* ============================================================
+   ATUALIZAÇÃO
+   ============================================================ */
+
+function atualizarTudo(){
+
+  renderDashboard();
+
+  renderClientes();
+
+  renderCobrancas();
+
+  renderNotas();
+
+  preencherClientesSelect(
+    "notaCliente"
+  );
+
 }
 
-// 💾 Salvar no celular
-function salvarDados() {
-  localStorage.setItem('mj_clientes', JSON.stringify(clientes));
-}
 
-// 📂 Carregar do celular
-function carregarDados() {
-  const dados = localStorage.getItem('mj_clientes');
-  if (dados) clientes = JSON.parse(dados);
-}
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
+
+atualizarTudo();
+
+
+/* Fecha modal clicando fora */
+
+document
+  .getElementById("cobrancaModal")
+  .addEventListener(
+    "click",
+    function(e){
+
+      if(e.target === this){
+        fecharModal();
+      }
+
+    }
+  );
+
+
 </script>
 
 </body>
