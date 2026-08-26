@@ -92,9 +92,35 @@ preview.src=c.toDataURL("image/jpeg",.9);cameraArea.classList.add("hidden");proc
 if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}lerNota(preview.src);
 }
 async function lerNota(img){
-ocrStatus.textContent="Lendo a nota automaticamente...";
-try{let r=await Tesseract.recognize(img,"por",{logger:m=>{if(m.status==="recognizing text")ocrStatus.textContent="Lendo: "+Math.round(m.progress*100)+"%"}});preencher(r.data.text);ocrStatus.textContent="Leitura concluída. Confira os dados antes de salvar."}
-catch(e){ocrStatus.textContent="Não foi possível ler automaticamente. Preencha os campos."}
+  ocrStatus.textContent="Lendo a nota automaticamente...";
+
+  try{
+    let r=await Tesseract.recognize(
+      img,
+      "por",
+      {
+        logger:m=>{
+          if(m.status==="recognizing text"){
+            ocrStatus.textContent=
+              "Lendo: "+Math.round(m.progress*100)+"%";
+          }
+        }
+      }
+    );
+
+    preencher(r.data.text);
+
+    ocrStatus.textContent="Nota lida com sucesso!";
+
+    setTimeout(()=>{
+      salvarNota();
+    },500);
+
+  }catch(e){
+    console.error(e);
+    ocrStatus.textContent=
+      "Não foi possível ler a nota. Preencha os campos.";
+  }
 }
 function preencher(t){
 let doc=(t.match(/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/)||t.match(/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/)||[])[0]||"";
