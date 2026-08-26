@@ -43,7 +43,33 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;
 <div class="actions"><button class="primary" onclick="salvarNota()">Salvar cliente + nota + cobrança</button><button class="secondary" onclick="fecharModal()">Cancelar</button></div></div>
 </div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL = "https://wksauxoeevinxfxemwcd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_kJHKtwIdnnhcbINCfUSAPA_E38KkheS";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+// Teste de conexão
+async function testarSupabase() {
+  const { data, error } = await supabaseClient
+    .from("clientes")
+    .select("*")
+    .limit(1);
+
+  if (error) {
+    console.error("Erro Supabase:", error);
+    return false;
+  }
+
+  console.log("Supabase conectado:", data);
+  return true;
+}
+
+testarSupabase();
 const KEY="mj_representacoes_v1";let db=JSON.parse(localStorage.getItem(KEY)||'{"clientes":[],"notas":[]}'),stream=null;
 const money=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(Number(v)||0);
 const esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
