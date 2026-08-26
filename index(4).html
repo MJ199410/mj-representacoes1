@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MJ Representações</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f7f5ef;color:#222;font-family:Arial,sans-serif}
+header{background:#fff;border-bottom:1px solid #ddd;padding:14px 24px;display:flex;align-items:center;gap:14px}
+.logo{width:58px;height:58px;border:2px solid #222;border-radius:50%;display:grid;place-items:center;font-size:22px}.brand b{display:block;font-size:20px}.brand span{font-size:12px;letter-spacing:2px}
+main{max-width:1100px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+h1{margin:0 0 4px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:22px 0}
+.card{background:#fff;border:1px solid #ddd;border-radius:16px;padding:20px;box-shadow:0 3px 12px #0001}.card strong{font-size:26px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}button{border:0;border-radius:10px;padding:13px 17px;font-weight:700;cursor:pointer;background:#222;color:#fff}.primary{background:#238636}.secondary{background:#eee;color:#222}
+input{width:100%;padding:12px;border:1px solid #ccc;border-radius:9px;margin:6px 0 12px;font-size:15px}
+table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;padding:12px;border-bottom:1px solid #eee}th{background:#f0eee8}
+.hidden{display:none}.status{margin:12px 0;padding:12px;border-radius:10px;background:#eee}video{width:100%;max-height:420px;border-radius:12px;background:#111}.preview{max-width:100%;border-radius:12px}
+.modal{position:fixed;inset:0;background:#0008;display:grid;place-items:center;padding:18px;z-index:5}.modalbox{background:#fff;max-width:650px;width:100%;max-height:90vh;overflow:auto;border-radius:18px;padding:22px}
+@media(max-width:750px){.grid{grid-template-columns:1fr}.card{padding:16px}main{padding:15px}th,td{font-size:13px}}
+</style>
+</head>
+<body>
+<header><div class="logo">MJ</div><div class="brand"><b>MJ Representações</b><span>SISTEMA DE COBRANÇA</span></div></header>
+<main>
+<div class="top"><div><h1>Dashboard</h1><p>Notas, clientes e cobranças.</p></div>
+<div class="actions"><button class="primary" onclick="abrirCamera()">📷 Fotografar nota</button><button class="secondary" onclick="novoCliente()">+ Cliente</button></div></div>
+<div class="grid">
+<div class="card">Clientes<br><strong id="qClientes">0</strong></div>
+<div class="card">Notas<br><strong id="qNotas">0</strong></div>
+<div class="card">A receber<br><strong id="totalReceber">R$ 0,00</strong></div>
+</div>
+<div class="card"><h2>Clientes e cobranças</h2><input id="busca" placeholder="Pesquisar cliente, CPF/CNPJ ou nota..." oninput="render()">
+<div style="overflow:auto"><table><thead><tr><th>Cliente</th><th>Documento</th><th>Nota</th><th>Valor</th><th>Vencimento</th><th>Status</th></tr></thead><tbody id="lista"></tbody></table></div></div>
+</main>
+
+<div id="modal" class="modal hidden"><div class="modalbox">
+<div class="top"><h2>Fotografar nota</h2><button class="secondary" onclick="fecharModal()">✕</button></div>
+<div id="cameraArea"><video id="video" autoplay playsinline></video><div class="actions"><button class="primary" onclick="capturar()">📸 Tirar foto</button><button class="secondary" onclick="fecharModal()">Cancelar</button></div><canvas id="canvas" class="hidden"></canvas></div>
+<div id="processArea" class="hidden"><img id="preview" class="preview"><div class="status" id="ocrStatus">Lendo a nota...</div>
+<label>Cliente<input id="fCliente"></label><label>CPF/CNPJ<input id="fDoc"></label><label>Número da nota<input id="fNota"></label>
+<label>Valor<input id="fValor" placeholder="0,00"></label><label>Vencimento<input id="fVenc" type="date"></label>
+<div class="actions"><button class="primary" onclick="salvarNota()">Salvar cliente + nota + cobrança</button><button class="secondary" onclick="fecharModal()">Cancelar</button></div></div>
+</div></div>
+
+<script>
+const KEY="mj_representacoes_v1";let db=JSON.parse(localStorage.getItem(KEY)||'{"clientes":[],"notas":[]}'),stream=null;
+const money=v=>new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(Number(v)||0);
+const esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+function save(){localStorage.setItem(KEY,JSON.stringify(db));render()}
+function render(){
+qClientes.textContent=db.clientes.length;qNotas.textContent=db.notas.length;
+totalReceber.textContent=money(db.notas.filter(n=>n.status!="Pago").reduce((a,n)=>a+Number(n.valor||0),0));
+let q=(busca.value||"").toLowerCase(),rows=db.notas.filter(n=>(n.cliente+" "+n.doc+" "+n.nota).toLowerCase().includes(q));
+lista.innerHTML=rows.map(n=>`<tr><td>${esc(n.cliente)}</td><td>${esc(n.doc)}</td><td>${esc(n.nota)}</td><td>${money(n.valor)}</td><td>${n.vencimento||"-"}</td><td><b>${n.status}</b></td></tr>`).join("")||'<tr><td colspan="6">Nenhum registro.</td></tr>';
+}
+async function abrirCamera(){
+modal.classList.remove("hidden");cameraArea.classList.remove("hidden");processArea.classList.add("hidden");
+try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});video.srcObject=stream}
+catch(e){alert("Permita o acesso à câmera. No GitHub Pages use HTTPS.")}
+}
+function fecharModal(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}modal.classList.add("hidden")}
+function capturar(){
+let c=canvas;c.width=video.videoWidth;c.height=video.videoHeight;c.getContext("2d").drawImage(video,0,0);
+preview.src=c.toDataURL("image/jpeg",.9);cameraArea.classList.add("hidden");processArea.classList.remove("hidden");
+if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}lerNota(preview.src);
+}
+async function lerNota(img){
+ocrStatus.textContent="Lendo a nota automaticamente...";
+try{let r=await Tesseract.recognize(img,"por",{logger:m=>{if(m.status==="recognizing text")ocrStatus.textContent="Lendo: "+Math.round(m.progress*100)+"%"}});preencher(r.data.text);ocrStatus.textContent="Leitura concluída. Confira os dados antes de salvar."}
+catch(e){ocrStatus.textContent="Não foi possível ler automaticamente. Preencha os campos."}
+}
+function preencher(t){
+let doc=(t.match(/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/)||t.match(/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/)||[])[0]||"";
+let val=(t.match(/(?:R\$|VALOR)[\s:]*([\d.,]+)/i)||[])[1]||"";
+let nota=(t.match(/(?:NF[- ]?E|NOTA(?: FISCAL)?)[^\d]{0,15}(\d{3,12})/i)||[])[1]||"";
+let m=t.match(/(?:DESTINAT[ÁA]RIO|CLIENTE|RAZ[AÃ]O SOCIAL)[\s:]*\n?\s*([A-ZÀ-Ú0-9 .&'-]{4,80})/i);
+fCliente.value=m?m[1].trim():"";fDoc.value=doc;fNota.value=nota;fValor.value=val;
+}
+function salvarNota(){
+let cliente=fCliente.value.trim(),doc=fDoc.value.trim(),nota=fNota.value.trim(),valor=parseFloat((fValor.value||"0").replace(/\./g,"").replace(",",".")),venc=fVenc.value;
+if(!cliente){alert("Informe o nome do cliente.");return}
+let c=db.clientes.find(x=>(doc&&x.doc===doc)||x.nome.toLowerCase()===cliente.toLowerCase());
+if(!c){c={id:crypto.randomUUID(),nome:cliente,doc};db.clientes.push(c)}else{c.nome=cliente;if(doc)c.doc=doc}
+db.notas.push({id:crypto.randomUUID(),cliente,doc,nota:nota||"Sem número",valor:isNaN(valor)?0:valor,vencimento:venc,status:"Pendente"});
+save();fecharModal();alert("Cliente e nota salvos automaticamente.");
+}
+function novoCliente(){let nome=prompt("Nome do cliente:");if(!nome)return;let doc=prompt("CPF/CNPJ (opcional):")||"";db.clientes.push({id:crypto.randomUUID(),nome,doc});save()}
+render();
+</script>
+</body></html>
